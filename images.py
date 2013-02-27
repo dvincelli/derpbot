@@ -7,7 +7,7 @@ def search(msg):
         images = google_image_search(query)
         images = images['responseData']['results']
         if images:
-            image = random.choice(images)['unescapedUrl'] + '#.png'
+            return random.choice(images)['unescapedUrl'] + '#.png'
     except Exception as e:
         print e
 
