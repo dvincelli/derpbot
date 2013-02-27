@@ -16,6 +16,7 @@ def google_image_search(query):
         'v': '1.0',
         'rsz': '8',
         'q': query,
+        'safe': 'active'
     }
     response = requests.get('http://ajax.googleapis.com/ajax/services/search/images',
                             params=params)
