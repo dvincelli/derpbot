@@ -1,9 +1,9 @@
 #!/usr/bin/env python
+import importlib
+import os
 import sys
 import logging
 import getpass
-import fags
-import images
 from optparse import OptionParser
 
 import sleekxmpp
@@ -15,13 +15,11 @@ class MUCBot(sleekxmpp.ClientXMPP):
 
         self.room = room
         self.nick = nick
-        self.commands = {
-            'fags': fags.echo,
-            'image': images.search
-        }
 
         self.add_event_handler("session_start", self.start)
         self.add_event_handler("groupchat_message", self.muc_message)
+        self.logger = logging.getLogger('derpbot')
+        self.load_commands()
 
     def start(self, event):
         """
@@ -43,6 +41,31 @@ class MUCBot(sleekxmpp.ClientXMPP):
                                         # If a room password is needed, use:
                                         # password=the_room_password,
                                         wait=True)
+
+    def load_commands(self):
+        cmdpath = os.path.join(
+                os.path.abspath(
+                    os.path.dirname(sys.modules['__main__'].__file__)
+                ),
+                'commands'
+            )
+        commands = {}
+        for cmd in os.listdir(cmdpath):
+            if cmd.endswith('.pyc'):
+                continue
+            self.logger.debug('Found %r', cmd)
+            modname = os.path.basename(cmd).rstrip('.py')
+            self.logger.info(modname)
+            module = importlib.import_module('.'.join(['derp.commands', modname]))
+            for klassname in [c for c in dir(module) if not c.startswith('__')]:
+                klass = getattr(module, klassname)
+                try:
+                    command = klass.command
+                except AttributeError, e:
+                    continue
+                commands[klass.command] = klass()
+        self.commands = commands
+        self.logger.info('XXXXXX %s' % self.commands)
 
     def muc_message(self, msg):
         """
@@ -67,10 +90,10 @@ class MUCBot(sleekxmpp.ClientXMPP):
                    how it may be used.
         """
         body = msg['body']
-        print body
+        self.logger.debug(body)
         if body.startswith('!'):
             command = body.split(' ', 1)[0][1:]
-            print command
+            self.logger.debug(command)
             self.call_command(command, msg)
 
     def call_command(self, command, msg):
