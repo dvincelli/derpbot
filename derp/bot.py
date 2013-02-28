@@ -62,7 +62,7 @@ class MUCBot(sleekxmpp.ClientXMPP):
                 self.add_command(module, klassname)
                 self.add_pattern(module, klassname)
         self.logger.debug('Loaded commands: %r', self.commands)
-        self.logger.debug('Loaded patterns: %r', self.commands)
+        self.logger.debug('Loaded patterns: %r', self.patterns)
 
     def add_command(self, module, klassname):
         klass = getattr(module, klassname)
@@ -108,17 +108,20 @@ class MUCBot(sleekxmpp.ClientXMPP):
             command = body.split(' ', 1)[0][1:]
             self.logger.debug(command)
             self.call_plugin(self.commands.get(command), msg)
-        else:
-            for pattern in self.patterns:
-                match = pattern.search(str(body))
-                if match:
-                    self.logger.debug(body)
-                    self.call_plugin(self.patterns.get(pattern), msg)
+
+        for pattern in self.patterns:
+            match = pattern.search(body)
+            if match:
+                self.logger.debug(body)
+                self.call_plugin(self.patterns.get(pattern), msg)
 
     def call_plugin(self, command, msg):
         if command:
             output = command(msg)
-            self.send_message(mto=msg['from'].bare, mbody=output, mtype='groupchat')
+            self.send_message(
+                    mto=msg['from'].bare,
+                    mbody=output,
+                    mtype='groupchat')
 
 if __name__ == '__main__':
     # Setup the command line arguments.
@@ -177,7 +180,7 @@ if __name__ == '__main__':
         #
         # if xmpp.connect(('talk.google.com', 5222)):
         #     ...
-        xmpp.process(block=True)
+        xmpp.process(block=False)
         print("Done")
     else:
         print("Unable to connect.")

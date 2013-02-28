@@ -31,9 +31,14 @@ class ImageCommand(object):
     def parse(self, body):
         return ' '.join(body.split(' ')[1:])
 
-class NsfwImageCommand(ImageCommand):
-    command = 'nsfw'
+class HardcoreImageCommand(ImageCommand):
+    command = 'hc'
     safe_search = 'off'
+
+class ModerateImageCommand(ImageCommand):
+    command = 'mod'
+    safe_search = 'moderate'
+
 
 class AdultCommand(object):
     pattern = re.compile('like an adult', re.IGNORECASE)
