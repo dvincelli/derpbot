@@ -9,7 +9,10 @@ class ImageCommand(object):
     safe_search = 'active'
 
     def __call__(self, msg):
-        query = self.parse(str(msg['body']))
+        query = self.parse(msg['body'])
+        return self.query_image(query)
+
+    def query_image(self, query):
         try:
             images = self.google_image_search(query)
             images = images['responseData']['results']
@@ -40,6 +43,35 @@ class ModerateImageCommand(ImageCommand):
     command = 'mod'
     safe_search = 'moderate'
 
+class FixedImageCommand(ImageCommand):
+    command = None
+
+    def __call__(self, msg):
+        return self.query_image(self.command)
+
+class KittenImage(FixedImageCommand):
+    command = 'kitten'
+
+class KittensImage(FixedImageCommand):
+    command = 'kittens'
+
+class CatImage(FixedImageCommand):
+    command = 'cat'
+
+class CatsImage(FixedImageCommand):
+    command = 'cats'
+
+class PugImage(FixedImageCommand):
+    command = 'pug'
+
+class PugsImage(FixedImageCommand):
+    command = 'pugs'
+
+class AwwImage(FixedImageCommand):
+    command = 'aww'
+
+    def __call__(self, msg):
+        return self.query_image('/r/aww')
 
 class AdultCommand(object):
     pattern = re.compile('like an adult', re.IGNORECASE)

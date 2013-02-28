@@ -8,6 +8,10 @@ from optparse import OptionParser
 
 import sleekxmpp
 
+from derp.deps import Container
+import Queue
+
+
 class MUCBot(sleekxmpp.ClientXMPP):
 
     def __init__(self, jid, password, room, nick):
@@ -20,6 +24,12 @@ class MUCBot(sleekxmpp.ClientXMPP):
         self.add_event_handler("groupchat_message", self.muc_message)
         self.logger = logging.getLogger('derpbot')
         self.load_commands()
+        self.setup_command_queue()
+
+    def setup_command_queue(self):
+        self.command_queue = Queue.Queue()
+        Container.register('queue', self.command_queue)
+        Container.register('parser', self.parse_message)
 
     def start(self, event):
         """
@@ -68,7 +78,8 @@ class MUCBot(sleekxmpp.ClientXMPP):
         klass = getattr(module, klassname)
         try:
             command = klass.command
-            self.commands[klass.command] = klass()
+            if command:
+                self.commands['!' + command] = klass()
         except AttributeError as e:
             pass
 
@@ -76,7 +87,8 @@ class MUCBot(sleekxmpp.ClientXMPP):
         klass = getattr(module, klassname)
         try:
             pattern = klass.pattern
-            self.patterns[klass.pattern] = klass()
+            if pattern:
+                self.patterns[pattern] = klass()
         except AttributeError as e:
             pass
 
@@ -102,20 +114,37 @@ class MUCBot(sleekxmpp.ClientXMPP):
                    for stanza objects and the Message stanza to see
                    how it may be used.
         """
+        command = self.parse_message(msg)
+        self.queue_command(command, msg)
+        self.process_pending_commands()
+
+    def parse_message(self, msg):
         body = msg['body']
         self.logger.debug(body)
+
         if body.startswith('!'):
-            command = body.split(' ', 1)[0][1:]
-            self.logger.debug(command)
-            self.call_plugin(self.commands.get(command), msg)
+            return body.split(' ', 1)[0][1:]
 
         for pattern in self.patterns:
             match = pattern.search(body)
             if match:
-                self.logger.debug(body)
-                self.call_plugin(self.patterns.get(pattern), msg)
+                return pattern
+
+    def queue_command(self, command, msg):
+        self.logger.debug('queued command')
+        self.command_queue.put([command, msg])
+
+    def process_pending_commands(self):
+        while not self.command_queue.empty():
+            cmdtuple = self.command_queue.get_nowait()
+            if cmdtuple:
+                self.logger.debug('dequeued command: %r', cmdtuple)
+                cmd, msg = cmdtuple
+                self.call_plugin(cmd, msg)
 
     def call_plugin(self, command, msg):
+        self.logger.debug(command)
+        command = self.commands.get('!%s' % command) or self.patterns.get(command)
         if command:
             output = command(msg)
             self.send_message(
