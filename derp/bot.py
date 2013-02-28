@@ -61,7 +61,8 @@ class MUCBot(sleekxmpp.ClientXMPP):
             for klassname in [c for c in dir(module) if not c.startswith('__')]:
                 self.add_command(module, klassname)
                 self.add_pattern(module, klassname)
-        self.logger.info('XXXXXX %s' % self.commands)
+        self.logger.debug('Loaded commands: %r', self.commands)
+        self.logger.debug('Loaded patterns: %r', self.commands)
 
     def add_command(self, module, klassname):
         klass = getattr(module, klassname)
