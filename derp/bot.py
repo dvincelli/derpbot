@@ -65,7 +65,7 @@ class MUCBot(sleekxmpp.ClientXMPP):
                     continue
                 commands[klass.command] = klass()
         self.commands = commands
-        self.logger.info('XXXXXX %s' % self.commands)
+        self.logger.debug('Loaded commands: %r', commands)
 
     def muc_message(self, msg):
         """
