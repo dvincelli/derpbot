@@ -2,8 +2,10 @@ import requests
 import random
 import re
 
+
 class ImageCommand(object):
     command = 'image'
+    safe_search = 'active'
 
     def __call__(self, msg):
         query = self.parse(str(msg['body']))
@@ -20,7 +22,7 @@ class ImageCommand(object):
             'v': '1.0',
             'rsz': '8',
             'q': query,
-            'safe': 'active',
+            'safe': self.safe_search,
         }
         response = requests.get('http://ajax.googleapis.com/ajax/services/search/images',
                                 params=params)
@@ -29,6 +31,9 @@ class ImageCommand(object):
     def parse(self, body):
         return ' '.join(body.split(' ')[1:])
 
+class NsfwImageCommand(ImageCommand):
+    command = 'nsfw'
+    safe_search = 'off'
 
 class AdultCommand(object):
     pattern = re.compile('like an adult', re.IGNORECASE)
