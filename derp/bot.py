@@ -52,7 +52,7 @@ class MUCBot(sleekxmpp.ClientXMPP):
         self.commands = {}
         self.patterns = {}
         for cmd in os.listdir(cmdpath):
-            if cmd.endswith('.pyc'):
+            if not cmd.endswith('.py'):
                 continue
             self.logger.debug('Found %r', cmd)
             modname = os.path.basename(cmd).rstrip('.py')
