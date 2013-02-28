@@ -1,7 +1,8 @@
-import requests
+import requests as _requests
 import random
 import re
 
+requests = _requests.Session()
 
 class ImageCommand(object):
     command = 'image'
