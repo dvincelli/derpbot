@@ -7,6 +7,7 @@ setup(
     install_requires = [
         'sleekxmpp == 1.1.11',
         'dnspython',
-        'requests'
+        'requests',
+        'gevent'
     ],
 )
