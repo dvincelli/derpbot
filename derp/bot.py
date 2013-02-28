@@ -49,7 +49,8 @@ class MUCBot(sleekxmpp.ClientXMPP):
                 ),
                 'commands'
             )
-        commands = {}
+        self.commands = {}
+        self.patterns = {}
         for cmd in os.listdir(cmdpath):
             if cmd.endswith('.pyc'):
                 continue
@@ -58,14 +59,25 @@ class MUCBot(sleekxmpp.ClientXMPP):
             self.logger.info(modname)
             module = importlib.import_module('.'.join(['derp.commands', modname]))
             for klassname in [c for c in dir(module) if not c.startswith('__')]:
-                klass = getattr(module, klassname)
-                try:
-                    command = klass.command
-                except AttributeError, e:
-                    continue
-                commands[klass.command] = klass()
-        self.commands = commands
+                self.add_command(module, klassname)
+                self.add_pattern(module, klassname)
         self.logger.info('XXXXXX %s' % self.commands)
+
+    def add_command(self, module, klassname):
+        klass = getattr(module, klassname)
+        try:
+            command = klass.command
+            self.commands[klass.command] = klass()
+        except AttributeError as e:
+            pass
+
+    def add_pattern(self, module, klassname):
+        klass = getattr(module, klassname)
+        try:
+            pattern = klass.pattern
+            self.patterns[klass.pattern] = klass()
+        except AttributeError as e:
+            pass
 
     def muc_message(self, msg):
         """
@@ -94,11 +106,17 @@ class MUCBot(sleekxmpp.ClientXMPP):
         if body.startswith('!'):
             command = body.split(' ', 1)[0][1:]
             self.logger.debug(command)
-            self.call_command(command, msg)
+            self.call_plugin(self.commands.get(command), msg)
+        else:
+            for pattern in self.patterns:
+                match = pattern.search(str(body))
+                if match:
+                    self.logger.debug(body)
+                    self.call_plugin(self.patterns.get(pattern), msg)
 
-    def call_command(self, command, msg):
-        if command in self.commands:
-            output = self.commands[command](msg)
+    def call_plugin(self, command, msg):
+        if command:
+            output = command(msg)
             self.send_message(mto=msg['from'].bare, mbody=output, mtype='groupchat')
 
 if __name__ == '__main__':

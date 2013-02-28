@@ -1,5 +1,6 @@
 import requests
 import random
+import re
 
 class ImageCommand(object):
     command = 'image'
@@ -30,7 +31,7 @@ class ImageCommand(object):
 
 
 class AdultCommand(object):
-    command = 'adult'
+    pattern = re.compile('like an adult', re.IGNORECASE)
     images = [
         "http://1.bp.blogspot.com/_D_Z-D2tzi14/TBpOnhVqyAI/AAAAAAAADFU/8tfM4E_Z4pU/s400/responsibility12(alternate).png",
         "http://2.bp.blogspot.com/_D_Z-D2tzi14/TBpOglLvLgI/AAAAAAAADFM/I7_IUXh6v1I/s400/responsibility10.png",
