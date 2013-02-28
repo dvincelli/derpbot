@@ -5,7 +5,7 @@ import re
 requests = _requests.Session()
 
 class ImageCommand(object):
-    command = 'image'
+    command = 'img'
     safe_search = 'active'
 
     def __call__(self, msg):
@@ -15,18 +15,21 @@ class ImageCommand(object):
     def query_image(self, query):
         try:
             images = self.google_image_search(query)
+            start = random.choice(images['responseData']['cursor']['pages'])["start"]
+            images = self.google_image_search(query, start)
             images = images['responseData']['results']
             if images:
                 return random.choice(images)['unescapedUrl'] + '#.png'
         except Exception as e:
             print e
 
-    def google_image_search(self, query):
+    def google_image_search(self, query, start=0):
         params = {
             'v': '1.0',
             'rsz': '8',
             'q': query,
             'safe': self.safe_search,
+            'start': start
         }
         response = requests.get('http://ajax.googleapis.com/ajax/services/search/images',
                                 params=params)
@@ -48,6 +51,12 @@ class FixedImageCommand(ImageCommand):
 
     def __call__(self, msg):
         return self.query_image(self.command)
+
+class KittyImage(FixedImageCommand):
+    command = 'kitty'
+
+class KittiesImage(FixedImageCommand):
+    command = 'kitties'
 
 class KittenImage(FixedImageCommand):
     command = 'kitten'
