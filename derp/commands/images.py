@@ -5,7 +5,7 @@ import re
 requests = _requests.Session()
 
 class ImageCommand(object):
-    command = 'img'
+    command = 'image'
     safe_search = 'active'
 
     def __call__(self, msg):
@@ -37,6 +37,9 @@ class ImageCommand(object):
 
     def parse(self, body):
         return ' '.join(body.split(' ')[1:])
+
+class ImgCommand(ImageCommand):
+    command = 'img'
 
 class HardcoreImageCommand(ImageCommand):
     command = 'hc'
