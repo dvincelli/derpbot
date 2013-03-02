@@ -8,20 +8,8 @@ class ImageCommand(object):
     command = 'image'
     safe_search = 'active'
 
-    def __call__(self, msg):
-        query = self.parse(msg['body'])
-        return self.query_image(query)
-
-    def query_image(self, query):
-        try:
-            images = self.google_image_search(query)
-            start = random.choice(images['responseData']['cursor']['pages'])["start"]
-            images = self.google_image_search(query, start)
-            images = images['responseData']['results']
-            if images:
-                return random.choice(images)['unescapedUrl'] + '#.png'
-        except Exception as e:
-            print e
+    def parse(self, body):
+        return ' '.join(body.split(' ')[1:])
 
     def google_image_search(self, query, start=0):
         params = {
@@ -35,8 +23,20 @@ class ImageCommand(object):
                                 params=params)
         return response.json()
 
-    def parse(self, body):
-        return ' '.join(body.split(' ')[1:])
+    def query_image(self, query):
+        try:
+            images = self.google_image_search(query)
+            start = random.choice(images['responseData']['cursor']['pages'])["start"]
+            images = self.google_image_search(query, start)
+            images = images['responseData']['results']
+            if images:
+                return random.choice(images)['unescapedUrl'] + '#.png'
+        except Exception as e:
+            print e
+
+    def __call__(self, msg):
+        query = self.parse(msg['body'])
+        return self.query_image(query)
 
 class ImgCommand(ImageCommand):
     command = 'img'
@@ -84,6 +84,28 @@ class AwwImage(FixedImageCommand):
 
     def __call__(self, msg):
         return self.query_image('/r/aww')
+
+class RandomImage(ImageCommand):
+    command = 'random'
+
+    def __call__(self, msg):
+        query = random.choice(open("/usr/share/dict/words").readlines())
+        return self.query_image(query)
+
+class SlothImage(FixedImageCommand):
+    command = 'sloth'
+
+class SlothsImage(FixedImageCommand):
+    command = 'sloths'
+
+class SlothBucketImage(FixedImageCommand):
+    command = 'slothbucket'
+
+class PuppyImage(FixedImageCommand):
+    command = 'puppy'
+
+class PuppiesImage(FixedImageCommand):
+    command = 'puppies'
 
 class AdultCommand(object):
     pattern = re.compile('like an adult', re.IGNORECASE)
