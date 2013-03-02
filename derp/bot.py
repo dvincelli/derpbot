@@ -64,10 +64,9 @@ class MUCBot(sleekxmpp.ClientXMPP):
         for cmd in os.listdir(cmdpath):
             if not cmd.endswith('.py'):
                 continue
-            self.logger.debug('Found %r', cmd)
             modname = os.path.basename(cmd).rstrip('.py')
-            self.logger.info(modname)
             module = importlib.import_module('.'.join(['derp.commands', modname]))
+            self.logger.debug('Imported module: %r', module)
             for klassname in [c for c in dir(module) if not c.startswith('__')]:
                 self.add_command(module, klassname)
                 self.add_pattern(module, klassname)
@@ -80,7 +79,7 @@ class MUCBot(sleekxmpp.ClientXMPP):
             command = klass.command
             if command:
                 self.commands['!' + command] = klass()
-        except AttributeError as e:
+        except AttributeError:
             pass
 
     def add_pattern(self, module, klassname):
@@ -89,7 +88,7 @@ class MUCBot(sleekxmpp.ClientXMPP):
             pattern = klass.pattern
             if pattern:
                 self.patterns[pattern] = klass()
-        except AttributeError as e:
+        except AttributeError:
             pass
 
     def muc_message(self, msg):
@@ -114,8 +113,8 @@ class MUCBot(sleekxmpp.ClientXMPP):
                    for stanza objects and the Message stanza to see
                    how it may be used.
         """
-        command = self.parse_message(msg)
-        self.queue_command(command, msg)
+        cmdname = self.parse_message(msg)
+        self.queue_command(cmdname, msg)
         self.process_pending_commands()
 
     def parse_message(self, msg):
@@ -130,21 +129,26 @@ class MUCBot(sleekxmpp.ClientXMPP):
             if match:
                 return pattern
 
-    def queue_command(self, command, msg):
+    def queue_command(self, cmdname, msg):
         self.logger.debug('queued command')
-        self.command_queue.put([command, msg])
+        self.command_queue.put([cmdname, msg])
 
     def process_pending_commands(self):
         while not self.command_queue.empty():
             cmdtuple = self.command_queue.get_nowait()
             if cmdtuple:
                 self.logger.debug('dequeued command: %r', cmdtuple)
-                cmd, msg = cmdtuple
-                self.call_plugin(cmd, msg)
+                cmdname, msg = cmdtuple
+                self.call_plugin(cmdname, msg)
 
-    def call_plugin(self, command, msg):
-        self.logger.debug(command)
-        command = self.commands.get('!%s' % command) or self.patterns.get(command)
+    def call_plugin(self, cmdname, msg):
+        if cmdname is None:
+            return
+
+        self.logger.debug(cmdname)
+        command = self.commands.get('!%s' % cmdname) or \
+                self.patterns.get(cmdname)
+
         if command:
             output = command(msg)
             self.send_message(
