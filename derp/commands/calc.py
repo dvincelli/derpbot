@@ -14,6 +14,7 @@ class CalculatorCommand(object):
         output = []
         input = iter(infix)
         prec = {
+            '^': 4,
             '*': 3,
             '/': 3,
             '%': 3,
@@ -39,7 +40,7 @@ class CalculatorCommand(object):
                     stack.append(token)
                 else:
                     op1 = token
-                    while len(stack) > 0 and stack[-1] != '(' and stack[-1] in '+-*/%' and prec[op1] <= prec[stack[-1]]:
+                    while len(stack) > 0 and stack[-1] != '(' and stack[-1] in '+-*/%^' and prec[op1] <= prec[stack[-1]]:
                             op2 = stack.pop()
                             output.append(op2)
                     stack.append(op1)
@@ -108,7 +109,7 @@ class CalculatorCommand(object):
                 else:
                     input_iter = itertools.chain([x], input_iter)
 
-            if x in '*/+-%()':
+            if x in '*/+-%^()':
                 if x != '':  # EOF
                     yield x
             elif x != ' ':   # eat spaces, anything else is unrecognized
@@ -118,6 +119,7 @@ class CalculatorCommand(object):
         print('Evaluating: %s' % infix)
         stack = []
         ops = {
+                '^': operator.pow,
                 '*': operator.mul,
                 '/': operator.div,
                 '%': operator.mod,
