@@ -64,7 +64,7 @@ class MUCBot(sleekxmpp.ClientXMPP):
         for cmd in os.listdir(cmdpath):
             if not cmd.endswith('.py'):
                 continue
-            modname = os.path.basename(cmd).rstrip('.py')
+            modname = os.path.basename(cmd)[:-3] # remove .py
             module = importlib.import_module('.'.join(['derp.commands', modname]))
             self.logger.debug('Imported module: %r', module)
             for klassname in [c for c in dir(module) if not c.startswith('__')]:
