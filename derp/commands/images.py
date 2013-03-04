@@ -1,5 +1,6 @@
 import requests as _requests
 import random
+import time
 import re
 
 requests = _requests.Session()
@@ -44,6 +45,14 @@ class ImgCommand(ImageCommand):
 class HardcoreImageCommand(ImageCommand):
     command = 'hc'
     safe_search = 'off'
+
+    def __call__(self, msg):
+        if 9 <= int(time.strftime('%H')) <= 18:
+            self.safe_search = random.choice(['moderate', 'active'])
+        else:
+            self.safe_search = 'off'
+        query = self.parse(msg['body'])
+        return self.query_image(query)
 
 class ModerateImageCommand(ImageCommand):
     command = 'mod'
