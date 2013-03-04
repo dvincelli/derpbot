@@ -1,4 +1,5 @@
 import operator
+import re
 
 # While there are tokens to be read:
 # Read a token.
@@ -110,7 +111,7 @@ class CalculatorCommand(object):
                 '-': operator.sub
             }
         for token in infix:
-            if isinstance(token, int):
+            if isinstance(token, (float, int)):
                 stack.append(token)
             elif token in '*/%+-':
                 op = ops.get(token)
@@ -128,12 +129,17 @@ class CalculatorCommand(object):
 class RPNCalculatorCommand(CalculatorCommand):
     command = 'rpn'
 
+    re_int = re.compile('^-?\d+$')
+    re_float = re.compile('^-?\d+\.|e\d+$')
+
     def __call__(self, msg):
         input = msg['body'].lstrip('!' + self.command).split(' ')
         postfix = []
         for item in input:
-            if item.isdigit():
+            if self.re_int.match(item):
                 postfix.append(int(item))
+            elif self.re_float.match(item):
+                postfix.append(float(item))
             elif item:
                 postfix.append(item)
         return str(self.eval(postfix))
