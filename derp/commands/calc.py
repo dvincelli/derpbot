@@ -35,7 +35,7 @@ class CalculatorCommand(object):
                 if len(stack) > 0 and stack[-1] == '(':
                     stack.pop()
 
-            elif token in '+-*/%':
+            elif token in '+-*/%^':
                 if len(stack) == 0 or stack[-1] == '(':
                     stack.append(token)
                 else:
