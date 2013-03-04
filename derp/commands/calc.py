@@ -129,7 +129,7 @@ class CalculatorCommand(object):
         for token in infix:
             if isinstance(token, (float, int)):
                 stack.append(token)
-            elif token in '*/%+-':
+            elif token in '*/%+-^':
                 op = ops.get(token)
                 term = stack.pop()
                 factor = stack.pop()
