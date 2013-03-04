@@ -121,3 +121,40 @@ class AdultCommand(object):
     ]
     def __call__(self, msg):
         return random.choice(self.images)
+
+class BoogyCommand(object):
+    command = 'boogy'
+    images = [
+        "http://www.vh1.com/celebrity/bwe/images/2011/09/Mister-Rogers-Dance-1316710648.gif"
+    ]
+    def __call__(self, msg):
+        return random.choice(self.images)
+
+class WatCommand(object):
+    command = 'wat'
+    links = [
+        'http://i.imgur.com/QPtxtUG.gif',
+        'http://i.imgur.com/3DQmFtG.jpeg',
+        'http://i.imgur.com/4cRDoiZ.gif',
+        'http://i.imgur.com/gyBkr.gif',
+        'http://i.imgur.com/2xYGsuG.gif',
+        'http://i.imgur.com/47k8P7I.jpg',
+        'http://i.imgur.com/C8LE0.gif',
+        'http://i.imgur.com/yrqr3qi.jpg',
+        'http://i.imgur.com/0z7pboO.gif',
+        'http://i.imgur.com/aOkyxdg.jpg',
+        'http://i.imgur.com/OKdtaaB.gif',
+        'http://i.imgur.com/S3yUoE0.gif',
+        'http://i.imgur.com/YIGnwFp.gif',
+        'http://i.imgur.com/xoOmhJC.gif',
+        'http://i.imgur.com/Xs0twqW.jpg',
+        'http://i.imgur.com/hByu9.gif',
+        'http://i.imgur.com/rRcyf7t.gif',
+        'http://i.imgur.com/YtmTXxW.gif',
+        'http://i.imgur.com/wjfWfRP.jpg',
+        'http://i.imgur.com/TGFOfJD.gif',
+        'http://i.imgur.com/uBMDJtk.jpg'
+    ]
+
+    def __call__(self, msg):
+        return random.choice(self.links)
