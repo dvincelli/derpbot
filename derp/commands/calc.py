@@ -1,28 +1,6 @@
+import itertools
 import operator
 import re
-
-# While there are tokens to be read:
-# Read a token.
-# If the token is a number, then add it to the output queue.
-# If the token is a function token, then push it onto the stack.
-# If the token is a function argument separator (e.g., a comma):
-# Until the token at the top of the stack is a left parenthesis, pop operators off the stack onto the output queue. If no left parentheses are encountered, either the separator was misplaced or parentheses were mismatched.
-# If the token is an operator, o1, then:
-# while there is an operator token, o2, at the top of the stack, and
-# either o1 is left-associative and its precedence is less than or equal to that of o2,
-# or o1 has precedence less than that of o2,
-# pop o2 off the stack, onto the output queue;
-# push o1 onto the stack.
-# If the token is a left parenthesis, then push it onto the stack.
-# If the token is a right parenthesis:
-# Until the token at the top of the stack is a left parenthesis, pop operators off the stack onto the output queue.
-# Pop the left parenthesis from the stack, but not onto the output queue.
-# If the token at the top of the stack is a function token, pop it onto the output queue.
-# If the stack runs out without finding a left parenthesis, then there are mismatched parentheses.
-# When there are no more tokens to read:
-# While there are still operator tokens in the stack:
-# If the operator token on the top of the stack is a parenthesis, then there are mismatched parentheses.
-# Pop the operator onto the output queue.
 
 class ParseError(Exception):
     pass
@@ -35,7 +13,6 @@ class CalculatorCommand(object):
         stack = []
         output = []
         input = iter(infix)
-        token = self.next_token(input)
         prec = {
             '*': 3,
             '/': 3,
@@ -43,7 +20,7 @@ class CalculatorCommand(object):
             '+': 2,
             '-': 2,
         }
-        for token in self.next_token(input):
+        for token in self.tokenize(input):
             if isinstance(token, (float, int)):
                 output.append(token)
 
@@ -79,26 +56,63 @@ class CalculatorCommand(object):
 
         return output
 
-    def next_token(self, input):
-        # lol u need a real lexer
+    def tokenize(self, input):
         token = ''
-        for x in input:
-            if x == ' ':
-                if token:
+        input_iter = iter(input)
+        done = [False]
+
+        def next_char(input_iter):
+            try:
+                return next(input_iter)
+            except StopIteration:
+                done[0] = True
+                return ''
+
+        while not done[0]:
+            x = next_char(input_iter)
+            if x.isdigit():
+                while x.isdigit():
+                    token += x
+                    x = next_char(input_iter)
+                if x == '.':
+                    token += x
+                    x = next_char(input_iter)
+                    while x.isdigit():
+                        token += x
+                        x = next_char(input_iter)
+                    yield float(token)
+                    token = ''
+                else:
                     yield int(token)
                     token = ''
+                    input_iter = itertools.chain([x], input_iter)
 
-            if x.isdigit():
-                token += x
+            if x == '-':
+                x = next_char(input_iter)
+                if x.isdigit():
+                    token += '-'
+                    while x.isdigit():
+                        token += x
+                        x = next_char(input_iter)
+                    if x == '.':
+                        token += x
+                        x = next_char(input_iter)
+                        while x.isdigit():
+                            token += x
+                            x = next(input_iter)
+                        yield float(token)
+                        token = ''
+                    else:
+                        yield int(token)
+                        token = ''
+                else:
+                    input_iter = itertools.chain([x], input_iter)
 
             if x in '*/+-%()':
-                if token:
-                    yield int(token)
-                    token = ''
-                yield x
-
-        if token:
-            yield int(token)
+                if x != '':  # EOF
+                    yield x
+            elif x != ' ':   # eat spaces, anything else is unrecognized
+                raise ParseError
 
     def eval(self, infix):
         print('Evaluating: %s' % infix)
@@ -122,7 +136,10 @@ class CalculatorCommand(object):
         return stack.pop()
 
     def __call__(self, msg):
-        postfix = self.to_postfix(msg['body'].lstrip('!' + self.command))
+        try:
+            postfix = self.to_postfix(msg['body'].lstrip('!' + self.command))
+        except ParseError as e:
+            return str(e)
         return str(self.eval(postfix))
 
 
