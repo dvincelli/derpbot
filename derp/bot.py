@@ -9,8 +9,10 @@ from optparse import OptionParser
 import sleekxmpp
 
 from derp.deps import Container
-import Queue
 
+from derp.message.processor import MessageProcessor
+from derp.message.responder import MessageResponder
+from derp.message.queue import MessageQueue
 
 class MUCBot(sleekxmpp.ClientXMPP):
 
@@ -22,28 +24,16 @@ class MUCBot(sleekxmpp.ClientXMPP):
 
         self.add_event_handler("session_start", self.start)
         self.add_event_handler("groupchat_message", self.muc_message)
-        self.logger = logging.getLogger('derpbot')
-        self.load_commands()
-        self.setup_command_queue()
 
-    def setup_command_queue(self):
-        self.command_queue = Queue.Queue()
-        Container.register('queue', self.command_queue)
-        Container.register('parser', self.parse_message)
+        self.bootstrap_app_container()
+
+    def bootstrap_app_container(self):
+        message_processor = MessageProcessor()
+        message_responder = MessageResponder(self)
+        self.message_queue = MessageQueue(message_processor, message_responder)
+        Container.register('message_queue', self.message_queue)
 
     def start(self, event):
-        """
-        Process the session_start event.
-
-        Typical actions for the session_start event are
-        requesting the roster and broadcasting an initial
-        presence stanza.
-
-        Arguments:
-            event -- An empty dictionary. The session_start
-                     event does not provide any additional
-                     data.
-        """
         self.get_roster()
         self.send_presence()
         self.plugin['xep_0045'].joinMUC(self.room,
@@ -52,109 +42,9 @@ class MUCBot(sleekxmpp.ClientXMPP):
                                         # password=the_room_password,
                                         wait=True)
 
-    def load_commands(self):
-        cmdpath = os.path.join(
-                os.path.abspath(
-                    os.path.dirname(sys.modules['__main__'].__file__)
-                ),
-                'commands'
-            )
-        self.commands = {}
-        self.patterns = {}
-        for cmd in os.listdir(cmdpath):
-            if not cmd.endswith('.py'):
-                continue
-            modname = os.path.basename(cmd)[:-3] # remove .py
-            module = importlib.import_module('.'.join(['derp.commands', modname]))
-            self.logger.debug('Imported module: %r', module)
-            for klassname in [c for c in dir(module) if not c.startswith('__')]:
-                self.add_command(module, klassname)
-                self.add_pattern(module, klassname)
-        self.logger.debug('Loaded commands: %r', self.commands)
-        self.logger.debug('Loaded patterns: %r', self.patterns)
-
-    def add_command(self, module, klassname):
-        klass = getattr(module, klassname)
-        try:
-            command = klass.command
-            if command:
-                self.commands['!' + command] = klass()
-        except AttributeError:
-            pass
-
-    def add_pattern(self, module, klassname):
-        klass = getattr(module, klassname)
-        try:
-            pattern = klass.pattern
-            if pattern:
-                self.patterns[pattern] = klass()
-        except AttributeError:
-            pass
-
     def muc_message(self, msg):
-        """
-        Process incoming message stanzas from any chat room. Be aware
-        that if you also have any handlers for the 'message' event,
-        message stanzas may be processed by both handlers, so check
-        the 'type' attribute when using a 'message' event handler.
+        self.message_queue.put(msg)
 
-        Whenever the bot's nickname is mentioned, respond to
-        the message.
-
-        IMPORTANT: Always check that a message is not from yourself,
-                   otherwise you will create an infinite loop responding
-                   to your own messages.
-
-        This handler will reply to messages that mention
-        the bot's nickname.
-
-        Arguments:
-            msg -- The received message stanza. See the documentation
-                   for stanza objects and the Message stanza to see
-                   how it may be used.
-        """
-        cmdname = self.parse_message(msg)
-        self.queue_command(cmdname, msg)
-        self.process_pending_commands()
-
-    def parse_message(self, msg):
-        body = msg['body']
-        self.logger.debug(body)
-
-        if body.startswith('!'):
-            return body.split(' ', 1)[0][1:]
-
-        for pattern in self.patterns:
-            match = pattern.search(body)
-            if match:
-                return pattern
-
-    def queue_command(self, cmdname, msg):
-        self.logger.debug('queued command')
-        self.command_queue.put([cmdname, msg])
-
-    def process_pending_commands(self):
-        while not self.command_queue.empty():
-            cmdtuple = self.command_queue.get_nowait()
-            if cmdtuple:
-                self.logger.debug('dequeued command: %r', cmdtuple)
-                cmdname, msg = cmdtuple
-                self.call_plugin(cmdname, msg)
-
-    def call_plugin(self, cmdname, msg):
-        if cmdname is None:
-            return
-
-        self.logger.debug(cmdname)
-        command = self.commands.get('!%s' % cmdname) or \
-                self.patterns.get(cmdname)
-
-        if command:
-            output = command(msg)
-            self.send_message(
-                    mto=msg['from'].bare,
-                    mbody=output,
-                    mtype='groupchat')
 
 if __name__ == '__main__':
     # Setup the command line arguments.

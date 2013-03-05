@@ -4,7 +4,7 @@ from derp.deps import Inject
 class BombCommand(object):
     pattern = re.compile('(\d+) (![^\s]+)(.*)')
 
-    queue = Inject('queue')
+    message_queue = Inject('message_queue')
 
     def parse(self, msg):
         return self.pattern.match(msg['body']).groups()
@@ -13,4 +13,4 @@ class BombCommand(object):
         repeats, command, etc = self.parse(msg)
         msg['body'] = command + etc
         for x in xrange(0, min(int(repeats), 50)):
-            self.queue.put([command[1:], msg])
+            self.message_queue.put(msg)
