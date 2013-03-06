@@ -1,8 +1,11 @@
 import multiprocessing
+import re
 
 class MessageQueue(object):
 
     pool = multiprocessing.Pool()
+
+    bomb_pattern = re.compile('(\d+) (![^\s]+)(.*)')
 
     def __init__(self, message_processor, message_responder):
         self.message_processor = message_processor
@@ -22,6 +25,18 @@ class MessageQueue(object):
             callback=self.message_responder
         )
 
+    def is_bomb(self, message):
+        return self.bomb_pattern.match(message['body'])
+
+    def parse_bomb(self, message):
+        return self.bomb_pattern.match(message['body']).groups()
+
     def __call__(self, message):
-        return self.put(message)
+        repeats = 1
+        if self.is_bomb(message):
+            repeats, command, etc = self.parse_bomb(message)
+            message['body'] = command + etc
+            repeats = min(int(repeats), 50)
+        for x in xrange(0, repeats):
+            self.put(message)
 
