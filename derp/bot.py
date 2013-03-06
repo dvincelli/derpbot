@@ -13,6 +13,7 @@ from derp.deps import Container
 from derp.message.processor import MessageProcessor
 from derp.message.responder import MessageResponder
 from derp.message.queue import MessageQueue
+from derp.command_loader import CommandLoader
 
 class MUCBot(sleekxmpp.ClientXMPP):
 
@@ -28,7 +29,11 @@ class MUCBot(sleekxmpp.ClientXMPP):
         self.bootstrap_app_container()
 
     def bootstrap_app_container(self):
-        message_processor = MessageProcessor()
+        command_loader = CommandLoader()
+        message_processor = MessageProcessor(
+                command_loader.commands,
+                command_loader.patterns
+            )
         message_responder = MessageResponder(self)
         self.message_queue = MessageQueue(message_processor, message_responder)
         Container.register('message_queue', self.message_queue)
