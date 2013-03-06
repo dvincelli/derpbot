@@ -167,3 +167,17 @@ class WatCommand(object):
 
     def __call__(self, msg):
         return random.choice(self.links)
+
+class ImgurCommand(object):
+    command = 'imgur'
+
+    img_re = re.compile('src=\&quot;(.+?)\&quot;')
+
+    def parse(self, body):
+        return ' '.join(body.split(' ')[1:])
+
+    def __call__(self, msg):
+        keyword = self.parse(msg['body'])
+        rss = requests.get('http://imgur.com/r/' + keyword + '/rss')
+        images = self.img_re.findall(rss.text)
+        return random.choice(images)
