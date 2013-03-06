@@ -181,3 +181,14 @@ class ImgurCommand(object):
         rss = requests.get('http://imgur.com/r/' + keyword + '/rss')
         images = self.img_re.findall(rss.text)
         return random.choice(images)
+
+class GifBinCommand(object):
+    command = 'gif'
+
+    img_re = re.compile('<img src="([^"]+?)">')
+
+    def __call__(self, msg):
+        rss = requests.get('http://www.gifbin.com/feed/')
+        images = self.img_re.findall(rss.text)
+        return random.choice(images).replace('/tn_', '/')
+
