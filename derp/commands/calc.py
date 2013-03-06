@@ -139,11 +139,11 @@ class CalculatorCommand(object):
 
     def __call__(self, msg):
         try:
-            postfix = self.to_postfix(msg['body'].lstrip('!' + self.command))
-        except ParseError as e:
-            return str(e)
-        return str(self.eval(postfix))
-
+            expr = msg['body'][len(self.command)+1:].strip()
+            postfix = self.to_postfix(expr)
+        except ParseError:
+            return "parse error: " + expr
+        return expr + ' = ' + str(self.eval(postfix))
 
 class RPNCalculatorCommand(CalculatorCommand):
     command = 'rpn'
@@ -152,7 +152,7 @@ class RPNCalculatorCommand(CalculatorCommand):
     re_float = re.compile('^-?\d+\.|e\d+$')
 
     def __call__(self, msg):
-        input = msg['body'].lstrip('!' + self.command).split(' ')
+        input = msg['body'][len(self.command)+1:].strip().split(' ')
         postfix = []
         for item in input:
             if self.re_int.match(item):
@@ -161,4 +161,4 @@ class RPNCalculatorCommand(CalculatorCommand):
                 postfix.append(float(item))
             elif item:
                 postfix.append(item)
-        return str(self.eval(postfix))
+        return ' '.join(input) + ' = ' + str(self.eval(postfix))
