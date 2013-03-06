@@ -21,3 +21,7 @@ class MessageQueue(object):
             args,
             callback=self.message_responder
         )
+
+    def __call__(self, message):
+        return self.put(message)
+

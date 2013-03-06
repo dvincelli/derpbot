@@ -1,14 +1,9 @@
 #!/usr/bin/env python
-import importlib
-import os
-import sys
 import logging
 import getpass
 from optparse import OptionParser
 
 import sleekxmpp
-
-from derp.deps import Container
 
 from derp.message.processor import MessageProcessor
 from derp.message.responder import MessageResponder
@@ -23,20 +18,16 @@ class MUCBot(sleekxmpp.ClientXMPP):
         self.room = room
         self.nick = nick
 
-        self.add_event_handler("session_start", self.start)
-        self.add_event_handler("groupchat_message", self.muc_message)
-
-        self.bootstrap_app_container()
-
-    def bootstrap_app_container(self):
         command_loader = CommandLoader()
         message_processor = MessageProcessor(
                 command_loader.commands,
                 command_loader.patterns
             )
         message_responder = MessageResponder(self)
-        self.message_queue = MessageQueue(message_processor, message_responder)
-        Container.register('message_queue', self.message_queue)
+        message_queue = MessageQueue(message_processor, message_responder)
+
+        self.add_event_handler("session_start", self.start)
+        self.add_event_handler("groupchat_message", message_queue)
 
     def start(self, event):
         self.get_roster()
@@ -47,8 +38,6 @@ class MUCBot(sleekxmpp.ClientXMPP):
                                         # password=the_room_password,
                                         wait=True)
 
-    def muc_message(self, msg):
-        self.message_queue.put(msg)
 
 
 if __name__ == '__main__':

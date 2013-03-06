@@ -1,10 +1,9 @@
 import re
-from derp.deps import Inject
 
 class BombCommand(object):
     pattern = re.compile('(\d+) (![^\s]+)(.*)')
 
-    message_queue = Inject('message_queue')
+    message_queue = 'message_queue'
 
     def parse(self, msg):
         return self.pattern.match(msg['body']).groups()
