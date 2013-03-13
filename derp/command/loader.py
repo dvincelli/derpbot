@@ -4,7 +4,7 @@ import sys
 
 import logging
 
-logger = logging.getLogger('derp.command_loader')
+logger = logging.getLogger('derp.command.loader')
 
 class CommandLoader(object):
 

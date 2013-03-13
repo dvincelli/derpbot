@@ -1,4 +1,4 @@
-class MessageProcessor(object):
+class CommandHandler(object):
 
     def __init__(self, commands, patterns):
         self.commands = commands

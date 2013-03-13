@@ -1,7 +1,10 @@
 import multiprocessing
+import logging
 import re
 
-class MessageQueue(object):
+multiprocessing.log_to_stderr(logging.DEBUG)
+
+class CommandDispatcher(object):
 
     pool = multiprocessing.Pool()
 

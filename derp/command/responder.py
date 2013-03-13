@@ -1,4 +1,4 @@
-class MessageResponder(object):
+class CommandResponder(object):
 
     def __init__(self, sleekxmpp):
         self.sleekxmpp = sleekxmpp

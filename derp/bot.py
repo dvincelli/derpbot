@@ -5,10 +5,7 @@ from optparse import OptionParser
 
 import sleekxmpp
 
-from derp.message.processor import MessageProcessor
-from derp.message.responder import MessageResponder
-from derp.message.queue import MessageQueue
-from derp.command_loader import CommandLoader
+import derp.command.factory
 
 class MUCBot(sleekxmpp.ClientXMPP):
 
@@ -18,16 +15,10 @@ class MUCBot(sleekxmpp.ClientXMPP):
         self.room = room
         self.nick = nick
 
-        command_loader = CommandLoader()
-        message_processor = MessageProcessor(
-                command_loader.commands,
-                command_loader.patterns
-            )
-        message_responder = MessageResponder(self)
-        message_queue = MessageQueue(message_processor, message_responder)
+        handler = derp.command.factory.initialize(self)
 
         self.add_event_handler("session_start", self.start)
-        self.add_event_handler("groupchat_message", message_queue)
+        self.add_event_handler("groupchat_message", handler)
 
     def start(self, event):
         self.get_roster()
