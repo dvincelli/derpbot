@@ -10,4 +10,5 @@ setup(
         'requests',
         'gevent'
     ],
+    zip_safe = False
 )
