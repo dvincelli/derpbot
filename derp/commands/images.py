@@ -192,3 +192,32 @@ class GifBinCommand(object):
         images = self.img_re.findall(rss.text)
         return random.choice(images).replace('/tn_', '/')
 
+class JjDotAmCommand(object):
+    command = 'jj'
+
+    img_re = re.compile('<img border="0" src="((http://forgifs.com/gallery/./)(\d+?-\d)/([^"]+?))"')
+
+    def __call__(self, msg):
+        rss = requests.get('http://forgifs.com/gallery/srss/7')
+        images = self.img_re.findall(rss.text)
+        url, base_url, num, filename = random.choice(images)
+        if num.endswith('-2'):
+            base, term = num.split('-')
+            base, term = int(base), int(term)
+            base -= 1
+            term = 1
+            new_num = str(base) + '-' + str(term)
+            return ''.join([base_url, new_num, '/', filename])
+        else:
+            return ''.join([base_url, num, '/', filename])
+
+class ForGifsCommand(object):
+
+    command = '4gifs'
+
+    img_re = re.compile('\&lt;img src="([^"])"/\&gt;')
+
+    def __call__(self, msg):
+        rss = requests.get('http://4gifs.tumblr.com/rss')
+        images = self.img_re.findall(rss.text)
+        return random.choice(images)
