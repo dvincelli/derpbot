@@ -215,7 +215,7 @@ class ForGifsCommand(object):
 
     command = '4gifs'
 
-    img_re = re.compile('\&lt;img src="([^"])"/\&gt;')
+    img_re = re.compile('&lt;img src="([^"]+?)"/&gt;')
 
     def __call__(self, msg):
         rss = requests.get('http://4gifs.tumblr.com/rss')
