@@ -5,54 +5,84 @@ import re
 class ParseError(Exception):
     pass
 
+OP_ADD = '+'
+OP_SUB = '-'
+OP_MUL = '*'
+OP_DIV = '/'
+OP_MOD = '%'
+OP_EXP = '^'
+OPERATORS = OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_MOD, OP_EXP
+
+SYM_LPAREN = '('
+SYM_RPAREN = ')'
+
 class CalculatorCommand(object):
 
     command = 'calc'
+
+    def is_operator(self, token):
+        return token in OPERATORS
+
+    def op_left_assoc(self, token):
+        if token == OP_EXP:
+            return False
+        return True
+
+    def op_prec(self, token):
+        if token == OP_EXP:
+            return 4
+        if token in (OP_MUL, OP_DIV, OP_MOD):
+            return 3
+        if token in (OP_ADD, OP_SUB):
+            return 2
+        if token == SYM_LPAREN:
+            return 1
+        if token == SYM_RPAREN:
+            return 0
 
     def to_postfix(self, infix):
         stack = []
         output = []
         input = iter(infix)
-        prec = {
-            '^': 4,
-            '*': 3,
-            '/': 3,
-            '%': 3,
-            '+': 2,
-            '-': 2,
-        }
+
         for token in self.tokenize(input):
             if isinstance(token, (float, int)):
                 output.append(token)
 
-            elif token == '(':
-                stack.append(token)
-
-            elif token == ')':
-                while len(stack) > 0 and stack[-1] != '(':
-                    op = stack.pop()
-                    output.append(op)
-                if len(stack) > 0 and stack[-1] == '(':
-                    stack.pop()
-
-            elif token in '+-*/%^':
-                if len(stack) == 0 or stack[-1] == '(':
+            elif self.is_operator(token):
+                if len(stack) == 0:
+                    stack.append(token)
+                elif stack[-1] == SYM_LPAREN:
                     stack.append(token)
                 else:
                     op1 = token
-                    while len(stack) > 0 and stack[-1] != '(' and stack[-1] in '+-*/%^' and prec[op1] <= prec[stack[-1]]:
+                    if self.op_left_assoc(op1):
+                        while len(stack) > 0 and self.op_prec(op1) <= self.op_prec(stack[-1]):
+                            op2 = stack.pop()
+                            output.append(op2)
+                    else:
+                        while len(stack) > 0 and self.op_prec(op1) < self.op_prec(stack[-1]):
                             op2 = stack.pop()
                             output.append(op2)
                     stack.append(op1)
 
-        if len(stack) > 0 and stack[-1] == '(':
-            raise ParseError
+            elif token == SYM_LPAREN:
+                stack.append(token)
+
+            elif token == SYM_RPAREN:
+                while len(stack) > 0 and stack[-1] != SYM_LPAREN:
+                    op = stack.pop()
+                    output.append(op)
+                if len(stack) > 0 and stack[-1] == SYM_LPAREN:
+                    stack.pop()
 
         while len(stack) > 0:
             op = stack.pop()
+            if op == SYM_LPAREN:
+                raise ParseError
             output.append(op)
 
-        if ')' in output:
+        if SYM_RPAREN in output:
             raise ParseError
 
         return output
@@ -88,7 +118,7 @@ class CalculatorCommand(object):
                     token = ''
                     input_iter = itertools.chain([x], input_iter)
 
-            if x == '-':
+            elif x == '-':
                 x = next_char(input_iter)
                 if x.isdigit():
                     token += '-'
@@ -107,35 +137,39 @@ class CalculatorCommand(object):
                         yield int(token)
                         token = ''
                 else:
+                    # push back
                     input_iter = itertools.chain([x], input_iter)
 
-            if x in '*/+-%^()':
-                if x != '':  # EOF
-                    yield x
+            elif x in OPERATORS or x in (SYM_LPAREN, SYM_RPAREN):
+                yield x
+            elif x == '': # kludge for EOL
+                break
             elif x != ' ':   # eat spaces, anything else is unrecognized
                 raise ParseError
 
     def eval(self, infix):
-        print('Evaluating: %s' % infix)
         stack = []
         ops = {
-                '^': operator.pow,
-                '*': operator.mul,
-                '/': operator.div,
-                '%': operator.mod,
-                '+': operator.add,
-                '-': operator.sub
+                OP_EXP: operator.pow,
+                OP_MUL: operator.mul,
+                OP_DIV: operator.div,
+                OP_MOD: operator.mod,
+                OP_ADD: operator.add,
+                OP_SUB: operator.sub
             }
         for token in infix:
             if isinstance(token, (float, int)):
                 stack.append(token)
-            elif token in '*/%+-^':
+            elif token in OPERATORS:
                 op = ops.get(token)
                 term = stack.pop()
                 factor = stack.pop()
                 result = op(factor, term)
                 stack.append(result)
-        return stack.pop()
+        if len(stack) == 1:
+            return stack.pop()
+        else:
+            raise SyntaxError
 
     def __call__(self, msg):
         try:
@@ -149,7 +183,7 @@ class RPNCalculatorCommand(CalculatorCommand):
     command = 'rpn'
 
     re_int = re.compile('^-?\d+$')
-    re_float = re.compile('^-?\d+\.|e\d+$')
+    re_float = re.compile('^-?\d+\.\d+$')
 
     def __call__(self, msg):
         input = msg['body'][len(self.command)+1:].strip().split(' ')
