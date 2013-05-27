@@ -11,16 +11,19 @@ class MUCBot(sleekxmpp.ClientXMPP):
 
     def __init__(self, jid, password, room, nick):
         sleekxmpp.ClientXMPP.__init__(self, jid, password)
+        self.jid = jid
 
         self.room = room
         self.nick = nick
 
         handler = derp.command.factory.initialize(self)
 
+
         self.add_event_handler("session_start", self.start)
         self.add_event_handler("groupchat_message", handler)
 
     def start(self, event):
+
         self.get_roster()
         self.send_presence()
         self.plugin['xep_0045'].joinMUC(self.room,
@@ -28,6 +31,7 @@ class MUCBot(sleekxmpp.ClientXMPP):
                                         # If a room password is needed, use:
                                         # password=the_room_password,
                                         wait=True)
+
 
 
 
@@ -77,7 +81,11 @@ if __name__ == '__main__':
     xmpp = MUCBot(opts.jid, opts.password, opts.room, opts.nick)
     #xmpp.register_plugin('xep_0030') # Service Discovery
     xmpp.register_plugin('xep_0045') # Multi-User Chat
-    xmpp.register_plugin('xep_0199') # XMPP Ping
+    xmpp.register_plugin('xep_0199', pconfig={
+                'keepalive': True,
+                'interval': 15,
+                'timeout': 5
+            }) # XMPP Ping
 
     # Connect to the XMPP server and start processing XMPP stanzas.
     if xmpp.connect():
