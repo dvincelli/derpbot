@@ -8,6 +8,9 @@ logger = logging.getLogger('derp.command.loader')
 
 class CommandLoader(object):
 
+    commands = {}
+    patterns = {}
+
     def __init__(self):
         self.load_commands()
 
@@ -18,8 +21,6 @@ class CommandLoader(object):
                 ),
                 'commands'
             )
-        self.commands = {}
-        self.patterns = {}
         for cmd in os.listdir(cmdpath):
             if not cmd.endswith('.py'):
                 continue
