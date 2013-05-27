@@ -116,9 +116,8 @@ class CalculatorCommand(object):
                 else:
                     yield int(token)
                     token = ''
-                    input_iter = itertools.chain([x], input_iter)
 
-            elif x == '-':
+            if x == '-':
                 x = next_char(input_iter)
                 if x.isdigit():
                     token += '-'
@@ -137,8 +136,10 @@ class CalculatorCommand(object):
                         yield int(token)
                         token = ''
                 else:
+                    yield OP_SUB
                     # push back
                     input_iter = itertools.chain([x], input_iter)
+                    continue
 
             elif x in OPERATORS or x in (SYM_LPAREN, SYM_RPAREN):
                 yield x
@@ -157,6 +158,7 @@ class CalculatorCommand(object):
                 OP_ADD: operator.add,
                 OP_SUB: operator.sub
             }
+        print stack, infix
         for token in infix:
             if isinstance(token, (float, int)):
                 stack.append(token)
@@ -169,7 +171,7 @@ class CalculatorCommand(object):
         if len(stack) == 1:
             return stack.pop()
         else:
-            raise SyntaxError
+            raise ParseError(' '.join(map(str, stack)))
 
     def __call__(self, msg):
         try:

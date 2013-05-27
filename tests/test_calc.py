@@ -20,4 +20,9 @@ def test_infix_to_postfix_simple_formula():
     answer = c({'body': '!calc (2 * (2 * 3 + 1))'})
     assert answer == '(2 * (2 * 3 + 1)) = 14'
 
+def test_infix_subtraction():
+    c = CalculatorCommand()
+    answer = c({'body': '!calc 2 - 5'})
+    assert answer == '2 - 5 = -3'
+
 
