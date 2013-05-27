@@ -221,3 +221,10 @@ class ForGifsCommand(object):
         rss = requests.get('http://4gifs.tumblr.com/rss')
         images = self.img_re.findall(rss.text)
         return random.choice(images)
+
+class CringeCommand(ImgurCommand):
+    command = 'cringe'
+
+    def __call__(self, msg):
+        msg['body'] = '!imgur cringepics'
+        return ImgurCommand.__call__(self, msg)
