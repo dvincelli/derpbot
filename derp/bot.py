@@ -80,6 +80,7 @@ if __name__ == '__main__':
     # not matter.
     xmpp = MUCBot(opts.jid, opts.password, opts.room, opts.nick)
     #xmpp.register_plugin('xep_0030') # Service Discovery
+    xmpp.register_plugin('xep_0060') # PubSub
     xmpp.register_plugin('xep_0045') # Multi-User Chat
     xmpp.register_plugin('xep_0199', pconfig={
                 'keepalive': True,
@@ -96,6 +97,7 @@ if __name__ == '__main__':
         #
         # if xmpp.connect(('talk.google.com', 5222)):
         #     ...
+        xmpp.whitespace_keepalive_interval = 30
         xmpp.process(block=False)
         print("Done")
     else:
