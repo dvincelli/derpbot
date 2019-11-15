@@ -2,6 +2,11 @@ import requests as _requests
 import random
 import time
 import re
+import logging
+
+
+logger = logging.getLogger(__name__)
+
 
 requests = _requests.Session()
 
@@ -20,7 +25,7 @@ class ImageCommand(object):
             'safe': self.safe_search,
             'start': start
         }
-        response = requests.get('http://ajax.googleapis.com/ajax/services/search/images',
+        response = requests.get('https://ajax.googleapis.com/ajax/services/search/images',
                                 params=params)
         return response.json()
 
@@ -33,7 +38,7 @@ class ImageCommand(object):
             if images:
                 return random.choice(images)['unescapedUrl'] + '#.png'
         except Exception as e:
-            print e
+            logger.error(e)
 
     def __call__(self, msg):
         query = self.parse(msg['body'])
@@ -116,71 +121,21 @@ class PuppyImage(FixedImageCommand):
 class PuppiesImage(FixedImageCommand):
     command = 'puppies'
 
-class AdultCommand(object):
-    pattern = re.compile('like an adult', re.IGNORECASE)
-    images = [
-        "http://1.bp.blogspot.com/_D_Z-D2tzi14/TBpOnhVqyAI/AAAAAAAADFU/8tfM4E_Z4pU/s400/responsibility12(alternate).png",
-        "http://2.bp.blogspot.com/_D_Z-D2tzi14/TBpOglLvLgI/AAAAAAAADFM/I7_IUXh6v1I/s400/responsibility10.png",
-        "http://4.bp.blogspot.com/_D_Z-D2tzi14/TBpOY-GY8TI/AAAAAAAADFE/eboe6ItMldg/s400/responsibility11.png",
-        "http://2.bp.blogspot.com/_D_Z-D2tzi14/TBpOOgiDnVI/AAAAAAAADE8/wLkmIIv-xiY/s400/responsibility13(alternate).png",
-        "http://3.bp.blogspot.com/_D_Z-D2tzi14/TBpa3lAAFQI/AAAAAAAADFs/8IVZ-jzQsLU/s400/responsibility14.png",
-        "http://3.bp.blogspot.com/_D_Z-D2tzi14/TBpoOlpMa_I/AAAAAAAADGU/CfZVMM9MqsU/s400/responsibility102.png",
-        "http://4.bp.blogspot.com/_D_Z-D2tzi14/TBpoVLLDgCI/AAAAAAAADGc/iqux8px_V-s/s400/responsibility12(alternate)2.png",
-        "http://2.bp.blogspot.com/_D_Z-D2tzi14/TBpqGvZ7jVI/AAAAAAAADGk/hDTNttRLLks/s400/responsibility8.png"
-    ]
-    def __call__(self, msg):
-        return random.choice(self.images)
-
-class BoogyCommand(object):
-    command = 'boogy'
-    images = [
-        "http://www.vh1.com/celebrity/bwe/images/2011/09/Mister-Rogers-Dance-1316710648.gif"
-    ]
-    def __call__(self, msg):
-        return random.choice(self.images)
-
-class WatCommand(object):
-    command = 'wat'
-    links = [
-        'http://i.imgur.com/QPtxtUG.gif',
-        'http://i.imgur.com/3DQmFtG.jpeg',
-        'http://i.imgur.com/4cRDoiZ.gif',
-        'http://i.imgur.com/gyBkr.gif',
-        'http://i.imgur.com/2xYGsuG.gif',
-        'http://i.imgur.com/47k8P7I.jpg',
-        'http://i.imgur.com/C8LE0.gif',
-        'http://i.imgur.com/yrqr3qi.jpg',
-        'http://i.imgur.com/0z7pboO.gif',
-        'http://i.imgur.com/aOkyxdg.jpg',
-        'http://i.imgur.com/OKdtaaB.gif',
-        'http://i.imgur.com/S3yUoE0.gif',
-        'http://i.imgur.com/YIGnwFp.gif',
-        'http://i.imgur.com/xoOmhJC.gif',
-        'http://i.imgur.com/Xs0twqW.jpg',
-        'http://i.imgur.com/hByu9.gif',
-        'http://i.imgur.com/rRcyf7t.gif',
-        'http://i.imgur.com/YtmTXxW.gif',
-        'http://i.imgur.com/wjfWfRP.jpg',
-        'http://i.imgur.com/TGFOfJD.gif',
-        'http://i.imgur.com/uBMDJtk.jpg'
-    ]
-
-    def __call__(self, msg):
-        return random.choice(self.links)
 
 class ImgurCommand(object):
     command = 'imgur'
 
-    img_re = re.compile('src=\&quot;(.+?)\&quot;')
+    img_re = re.compile('src="//i.imgur.com/(.+?)"')
 
     def parse(self, body):
         return ' '.join(body.split(' ')[1:])
 
     def __call__(self, msg):
         keyword = self.parse(msg['body'])
-        rss = requests.get('http://imgur.com/r/' + keyword + '/rss')
+        rss = requests.get('https://imgur.com/r/' + keyword)
         images = self.img_re.findall(rss.text)
-        return random.choice(images)
+        return f'https://i.imgur.com/{random.choice(images)}'
+
 
 class GifBinCommand(object):
     command = 'gif'
