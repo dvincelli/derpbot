@@ -2,9 +2,12 @@ import multiprocessing
 import logging
 import re
 
-multiprocessing.log_to_stderr(logging.DEBUG)
+
+multiprocessing.log_to_stderr(logging.INFO)
+
 
 class CommandDispatcher(object):
+    __name__ = 'derp_bot'
 
     pool = multiprocessing.Pool()
 
@@ -17,8 +20,8 @@ class CommandDispatcher(object):
     def put(self, message):
         args = tuple([
             message['type'],
-            message['from'].bare,
-            message['to'].bare,
+            message['from'],
+            message['to'],
             message['body'],
             message['status']
         ])
