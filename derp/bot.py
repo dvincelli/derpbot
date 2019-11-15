@@ -3,36 +3,9 @@ import logging
 import getpass
 from optparse import OptionParser
 
-import sleekxmpp
-
+from derp.backends.xmpp import XMPPBot
+from derp.backends.slack import SlackBot
 import derp.command.factory
-
-class MUCBot(sleekxmpp.ClientXMPP):
-
-    def __init__(self, jid, password, room, nick):
-        sleekxmpp.ClientXMPP.__init__(self, jid, password)
-        self.jid = jid
-
-        self.room = room
-        self.nick = nick
-
-        handler = derp.command.factory.initialize(self)
-
-
-        self.add_event_handler("session_start", self.start)
-        self.add_event_handler("groupchat_message", handler)
-
-    def start(self, event):
-
-        self.get_roster()
-        self.send_presence()
-        self.plugin['xep_0045'].joinMUC(self.room,
-                                        self.nick,
-                                        # If a room password is needed, use:
-                                        # password=the_room_password,
-                                        wait=True)
-
-
 
 
 if __name__ == '__main__':
@@ -52,13 +25,15 @@ if __name__ == '__main__':
 
     # JID and password options.
     optp.add_option("-j", "--jid", dest="jid",
-                    help="JID to use")
+                    help="JID to use (if using XMPP)")
     optp.add_option("-p", "--password", dest="password",
                     help="password to use")
     optp.add_option("-r", "--room", dest="room",
-                    help="MUC room to join")
+                    help="channel or room to join")
     optp.add_option("-n", "--nick", dest="nick",
-                    help="MUC nickname")
+                    help="bot nickname")
+    optp.add_option("-s", "--slack-token", dest="slack_token",
+                    help="slack API token")
 
     opts, args = optp.parse_args()
 
@@ -66,39 +41,12 @@ if __name__ == '__main__':
     logging.basicConfig(level=opts.loglevel,
                         format='%(levelname)-8s %(message)s')
 
-    if opts.jid is None:
-        opts.jid = raw_input("Username: ")
-    if opts.password is None:
-        opts.password = getpass.getpass("Password: ")
-    if opts.room is None:
-        opts.room = raw_input("MUC room: ")
-    if opts.nick is None:
-        opts.nick = raw_input("MUC nickname: ")
+    if opts.jid:
+        bot = XMPPBot(opts.jid, opts.password, opts.room, opts.nick, message_handler=handler)
+    elif opts.slack_token:
+        bot = SlackBot(opts.slack_token, opts.room, opts.nick)
 
-    # Setup the MUCBot and register plugins. Note that while plugins may
-    # have interdependencies, the order in which you register them does
-    # not matter.
-    xmpp = MUCBot(opts.jid, opts.password, opts.room, opts.nick)
-    #xmpp.register_plugin('xep_0030') # Service Discovery
-    xmpp.register_plugin('xep_0060') # PubSub
-    xmpp.register_plugin('xep_0045') # Multi-User Chat
-    xmpp.register_plugin('xep_0199', pconfig={
-                'keepalive': True,
-                'interval': 15,
-                'timeout': 5
-            }) # XMPP Ping
+    handler = derp.command.factory.initialize(bot)
+    bot.register_message_handler(handler)
 
-    # Connect to the XMPP server and start processing XMPP stanzas.
-    if xmpp.connect():
-        # If you do not have the dnspython library installed, you will need
-        # to manually specify the name of the server if it does not match
-        # the one in the JID. For example, to use Google Talk you would
-        # need to use:
-        #
-        # if xmpp.connect(('talk.google.com', 5222)):
-        #     ...
-        xmpp.whitespace_keepalive_interval = 30
-        xmpp.process(block=False)
-        print("Done")
-    else:
-        print("Unable to connect.")
+    bot.run()
