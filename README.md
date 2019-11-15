@@ -1,4 +1,4 @@
 derpbot
 =======
 
-A derpy jabber bot
+A derpy jabber (XMPP) and slack bot
