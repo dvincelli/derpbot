@@ -5,10 +5,7 @@ setup(
     author = "#funnels",
     packages = find_packages(),
     install_requires = [
-        'sleekxmpp == 1.1.11',
-        'dnspython',
-        'requests',
-        'gevent'
+        open('requirements.txt').read().splitlines()
     ],
     zip_safe = False
 )
