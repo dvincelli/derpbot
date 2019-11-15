@@ -2,26 +2,24 @@ import random
 import re
 from html.parser import HTMLParser
 
+import lxml.html
+from lxml.cssselect import CSSSelector
+
 import requests as _requests
+
+
 requests = _requests.Session()
 
+
 class TwitterCommand(object):
-
     command = 'tweets'
-
-    tweet_re = re.compile('<p\ class="js-tweet-text tweet-text">(.*?)</p>')
-    tags_re = re.compile('<[^>]*?>')
-
-    def decode_entities(self, string):
-        html_parser = HTMLParser()
-        return html_parser.unescape(string)
 
     def find_tweets(self, handle):
         response = requests.get('https://twitter.com/' + handle)
-        matches = self.tweet_re.findall(response.text)
-        if matches:
-            match = random.choice(matches)
-            return self.decode_entities('@' + handle + ':' + self.tags_re.sub('', match))
+        tree = lxml.html.fromstring(response.text)
+        sel = CSSSelector('div.js-tweet-text-container p')
+        results = sel(tree)
+        return random.choice([result.text for result in results])
 
     def __call__(self, msg):
         handle = ' '.join(msg['body'].split(' ')[1:])
