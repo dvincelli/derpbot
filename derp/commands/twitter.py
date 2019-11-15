@@ -1,6 +1,6 @@
 import random
 import re
-import HTMLParser
+from html.parser import HTMLParser
 
 import requests as _requests
 requests = _requests.Session()
@@ -13,7 +13,7 @@ class TwitterCommand(object):
     tags_re = re.compile('<[^>]*?>')
 
     def decode_entities(self, string):
-        html_parser = HTMLParser.HTMLParser()
+        html_parser = HTMLParser()
         return html_parser.unescape(string)
 
     def find_tweets(self, handle):
