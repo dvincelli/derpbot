@@ -17,7 +17,6 @@ SYM_LPAREN = '('
 SYM_RPAREN = ')'
 
 class CalculatorCommand(object):
-
     command = 'calc'
 
     def is_operator(self, token):
@@ -153,12 +152,11 @@ class CalculatorCommand(object):
         ops = {
                 OP_EXP: operator.pow,
                 OP_MUL: operator.mul,
-                OP_DIV: operator.div,
+                OP_DIV: operator.truediv,
                 OP_MOD: operator.mod,
                 OP_ADD: operator.add,
                 OP_SUB: operator.sub
             }
-        print stack, infix
         for token in infix:
             if isinstance(token, (float, int)):
                 stack.append(token)
