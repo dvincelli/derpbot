@@ -16,11 +16,11 @@ class FortuneCommand(object):
         x = fortune_file.read(1)
 
         while x != '%':
-            fortune_file.seek(-1, 1)
+            fortune_file.seek(fortune_file.tell() - 1, os.SEEK_SET)
             x = fortune_file.read(1)
-            fortune_file.seek(-1, 1)
+            fortune_file.seek(fortune_file.tell() - 1, os.SEEK_SET)
 
-        fortune_file.seek(1, 1)
+        fortune_file.seek(fortune_file.tell() + 1, os.SEEK_SET)
         x = fortune_file.read(1)
 
         while x != '%':
