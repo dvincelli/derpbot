@@ -1,21 +1,27 @@
 import multiprocessing
+import queue
 import logging
 import re
+import os
 
 
-multiprocessing.log_to_stderr(logging.INFO)
 
 
 class CommandDispatcher(object):
     __name__ = "derp_bot"
 
-    pool = multiprocessing.Pool()
+    message_processing_backend = os.getenv('DERP_MESSAGE_PROCESSING_BACKEND', 'multiprocessing')
 
     bomb_pattern = re.compile("(\d+) (![^\s]+)(.*)")
 
     def __init__(self, message_processor, message_responder):
         self.message_processor = message_processor
         self.message_responder = message_responder
+        if self.message_processing_backend == 'multiprocessing':
+            multiprocessing.log_to_stderr(logging.INFO)
+            self.pool = multiprocessing.Pool()
+        else:
+            self.pool = queue.Queue()
 
     def put(self, message):
         args = tuple(
@@ -27,9 +33,14 @@ class CommandDispatcher(object):
                 message["status"],
             ]
         )
-        self.pool.apply_async(
-            self.message_processor, args, callback=self.message_responder
-        )
+        if self.message_processing_backend == 'multiprocessing':
+            self.pool.apply_async(
+                self.message_processor, args, callback=self.message_responder
+            )
+        else:
+            response = self.message_processor(*args)
+            return self.message_responder(response)
+            
 
     def is_bomb(self, message):
         return self.bomb_pattern.match(message["body"])

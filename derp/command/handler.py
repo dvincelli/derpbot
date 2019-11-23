@@ -1,3 +1,8 @@
+import asyncio
+
+
+
+
 class CommandHandler(object):
     def __init__(self, commands, patterns):
         self.commands = commands
@@ -28,5 +33,10 @@ class CommandHandler(object):
                 "body": body,
                 "status": status,
             }
-            output = command(msg)
+            if not getattr(command, 'is_async', False):
+                output = command(msg)
+            else:
+                output = asyncio.run(command(msg))
+
             return mfrom, output
+
