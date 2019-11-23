@@ -6,29 +6,40 @@ class FortuneCommand(object):
     command = "fortune"
 
     def __call__(self, msg):
-        path = os.path.join(os.path.dirname(__file__), "..", "fortunes", self.command)
+        path = os.path.join(
+                os.path.dirname(__file__), "..", "fortunes", self.command
+            )
         filesize = os.path.getsize(path)
-        fortune_file = open(path)
+        fortune_file = open(path, "rb")
 
         fortune = []
 
-        fortune_file.seek(random.randint(0, filesize), 0)
+        startpos = random.randint(0, filesize)
+        fortune_file.seek(startpos)
         x = fortune_file.read(1)
+        buf = bytes()
 
-        while x != "%":
-            fortune_file.seek(fortune_file.tell() - 1, os.SEEK_SET)
+        while x != b"%":
+            filepos = fortune_file.tell()
+            if filepos < 1:
+                break
+
+            fortune_file.seek(filepos - 1, os.SEEK_SET)
             x = fortune_file.read(1)
             fortune_file.seek(fortune_file.tell() - 1, os.SEEK_SET)
 
         fortune_file.seek(fortune_file.tell() + 1, os.SEEK_SET)
         x = fortune_file.read(1)
 
-        while x != "%":
-            fortune.append(x)
+        while x != b"%":
+            if x == b"":
+                break
+
+            buf += x
             x = fortune_file.read(1)
 
         try:
-            return "".join(fortune)
+            return buf.decode()
         finally:
             fortune_file.close()
 
