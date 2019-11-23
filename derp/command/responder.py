@@ -1,5 +1,4 @@
 class CommandResponder(object):
-
     def __init__(self, bot):
         self.bot = bot
 
@@ -9,4 +8,4 @@ class CommandResponder(object):
             mto, mbody = response
         except TypeError:
             return
-        self.bot.send_message(mto, mbody, mtype='groupchat')
+        self.bot.send_message(mto, mbody, mtype="groupchat")

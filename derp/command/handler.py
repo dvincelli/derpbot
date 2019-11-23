@@ -1,12 +1,11 @@
 class CommandHandler(object):
-
     def __init__(self, commands, patterns):
         self.commands = commands
         self.patterns = patterns
 
     def parse_message(self, body):
-        if body.startswith('!'):
-            command = body.split(' ', 1)[0]
+        if body.startswith("!"):
+            command = body.split(" ", 1)[0]
             return command
 
         for pattern in self.patterns:
@@ -23,11 +22,11 @@ class CommandHandler(object):
 
         if command:
             msg = {
-                    'type': mtype,
-                    'from': mfrom,
-                    'to': mto,
-                    'body': body,
-                    'status': status
-                }
+                "type": mtype,
+                "from": mfrom,
+                "to": mto,
+                "body": body,
+                "status": status,
+            }
             output = command(msg)
             return mfrom, output

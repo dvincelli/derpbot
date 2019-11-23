@@ -2,22 +2,25 @@ import itertools
 import operator
 import re
 
+
 class ParseError(Exception):
     pass
 
-OP_ADD = '+'
-OP_SUB = '-'
-OP_MUL = '*'
-OP_DIV = '/'
-OP_MOD = '%'
-OP_EXP = '^'
+
+OP_ADD = "+"
+OP_SUB = "-"
+OP_MUL = "*"
+OP_DIV = "/"
+OP_MOD = "%"
+OP_EXP = "^"
 OPERATORS = OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_MOD, OP_EXP
 
-SYM_LPAREN = '('
-SYM_RPAREN = ')'
+SYM_LPAREN = "("
+SYM_RPAREN = ")"
+
 
 class CalculatorCommand(object):
-    command = 'calc'
+    command = "calc"
 
     def is_operator(self, token):
         return token in OPERATORS
@@ -56,11 +59,15 @@ class CalculatorCommand(object):
                 else:
                     op1 = token
                     if self.op_left_assoc(op1):
-                        while len(stack) > 0 and self.op_prec(op1) <= self.op_prec(stack[-1]):
+                        while len(stack) > 0 and self.op_prec(op1) <= self.op_prec(
+                            stack[-1]
+                        ):
                             op2 = stack.pop()
                             output.append(op2)
                     else:
-                        while len(stack) > 0 and self.op_prec(op1) < self.op_prec(stack[-1]):
+                        while len(stack) > 0 and self.op_prec(op1) < self.op_prec(
+                            stack[-1]
+                        ):
                             op2 = stack.pop()
                             output.append(op2)
                     stack.append(op1)
@@ -87,7 +94,7 @@ class CalculatorCommand(object):
         return output
 
     def tokenize(self, input):
-        token = ''
+        token = ""
         input_iter = iter(input)
         done = [False]
 
@@ -96,7 +103,7 @@ class CalculatorCommand(object):
                 return next(input_iter)
             except StopIteration:
                 done[0] = True
-                return ''
+                return ""
 
         while not done[0]:
             x = next_char(input_iter)
@@ -104,36 +111,36 @@ class CalculatorCommand(object):
                 while x.isdigit():
                     token += x
                     x = next_char(input_iter)
-                if x == '.':
+                if x == ".":
                     token += x
                     x = next_char(input_iter)
                     while x.isdigit():
                         token += x
                         x = next_char(input_iter)
                     yield float(token)
-                    token = ''
+                    token = ""
                 else:
                     yield int(token)
-                    token = ''
+                    token = ""
 
-            if x == '-':
+            if x == "-":
                 x = next_char(input_iter)
                 if x.isdigit():
-                    token += '-'
+                    token += "-"
                     while x.isdigit():
                         token += x
                         x = next_char(input_iter)
-                    if x == '.':
+                    if x == ".":
                         token += x
                         x = next_char(input_iter)
                         while x.isdigit():
                             token += x
                             x = next(input_iter)
                         yield float(token)
-                        token = ''
+                        token = ""
                     else:
                         yield int(token)
-                        token = ''
+                        token = ""
                 else:
                     yield OP_SUB
                     # push back
@@ -142,21 +149,21 @@ class CalculatorCommand(object):
 
             elif x in OPERATORS or x in (SYM_LPAREN, SYM_RPAREN):
                 yield x
-            elif x == '': # kludge for EOL
+            elif x == "":  # kludge for EOL
                 break
-            elif x != ' ':   # eat spaces, anything else is unrecognized
+            elif x != " ":  # eat spaces, anything else is unrecognized
                 raise ParseError
 
     def eval(self, infix):
         stack = []
         ops = {
-                OP_EXP: operator.pow,
-                OP_MUL: operator.mul,
-                OP_DIV: operator.truediv,
-                OP_MOD: operator.mod,
-                OP_ADD: operator.add,
-                OP_SUB: operator.sub
-            }
+            OP_EXP: operator.pow,
+            OP_MUL: operator.mul,
+            OP_DIV: operator.truediv,
+            OP_MOD: operator.mod,
+            OP_ADD: operator.add,
+            OP_SUB: operator.sub,
+        }
         for token in infix:
             if isinstance(token, (float, int)):
                 stack.append(token)
@@ -169,24 +176,25 @@ class CalculatorCommand(object):
         if len(stack) == 1:
             return stack.pop()
         else:
-            raise ParseError(' '.join(map(str, stack)))
+            raise ParseError(" ".join(map(str, stack)))
 
     def __call__(self, msg):
         try:
-            expr = msg['body'][len(self.command)+1:].strip()
+            expr = msg["body"][len(self.command) + 1 :].strip()
             postfix = self.to_postfix(expr)
         except ParseError:
             return "parse error: " + expr
-        return expr + ' = ' + str(self.eval(postfix))
+        return expr + " = " + str(self.eval(postfix))
+
 
 class RPNCalculatorCommand(CalculatorCommand):
-    command = 'rpn'
+    command = "rpn"
 
-    re_int = re.compile('^-?\d+$')
-    re_float = re.compile('^-?\d+\.\d+$')
+    re_int = re.compile("^-?\d+$")
+    re_float = re.compile("^-?\d+\.\d+$")
 
     def __call__(self, msg):
-        input = msg['body'][len(self.command)+1:].strip().split(' ')
+        input = msg["body"][len(self.command) + 1 :].strip().split(" ")
         postfix = []
         for item in input:
             if self.re_int.match(item):
@@ -195,4 +203,4 @@ class RPNCalculatorCommand(CalculatorCommand):
                 postfix.append(float(item))
             elif item:
                 postfix.append(item)
-        return ' '.join(input) + ' = ' + str(self.eval(postfix))
+        return " ".join(input) + " = " + str(self.eval(postfix))

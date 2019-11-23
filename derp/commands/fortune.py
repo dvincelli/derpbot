@@ -1,12 +1,12 @@
 import random
 import os
 
+
 class FortuneCommand(object):
-    command = 'fortune'
+    command = "fortune"
 
     def __call__(self, msg):
-        path = os.path.join(os.path.dirname(__file__), '..',
-                'fortunes', self.command)
+        path = os.path.join(os.path.dirname(__file__), "..", "fortunes", self.command)
         filesize = os.path.getsize(path)
         fortune_file = open(path)
 
@@ -15,7 +15,7 @@ class FortuneCommand(object):
         fortune_file.seek(random.randint(0, filesize), 0)
         x = fortune_file.read(1)
 
-        while x != '%':
+        while x != "%":
             fortune_file.seek(fortune_file.tell() - 1, os.SEEK_SET)
             x = fortune_file.read(1)
             fortune_file.seek(fortune_file.tell() - 1, os.SEEK_SET)
@@ -23,38 +23,47 @@ class FortuneCommand(object):
         fortune_file.seek(fortune_file.tell() + 1, os.SEEK_SET)
         x = fortune_file.read(1)
 
-        while x != '%':
+        while x != "%":
             fortune.append(x)
             x = fortune_file.read(1)
 
         try:
-            return ''.join(fortune)
+            return "".join(fortune)
         finally:
             fortune_file.close()
 
+
 class StarTrekCommand(FortuneCommand):
-    command = 'startrek'
+    command = "startrek"
+
 
 class HomerSimpsonCommand(FortuneCommand):
-    command = 'homer'
+    command = "homer"
+
 
 class RalphWiggumsCommand(FortuneCommand):
-    command = 'ralph'
+    command = "ralph"
+
 
 class BartDetentionCommand(FortuneCommand):
-    command = 'bart'
+    command = "bart"
+
 
 class CalinAndHobbesCommand(FortuneCommand):
-    command = 'calvin'
+    command = "calvin"
+
 
 class ComicBookGuyCommand(FortuneCommand):
-    command = 'comic'
+    command = "comic"
+
 
 class ProgStyleCommand(FortuneCommand):
-    command = 'prog-style'
+    command = "prog-style"
+
 
 class SeinfeldCommand(FortuneCommand):
-    command = 'seinfeld'
+    command = "seinfeld"
+
 
 class BmcCommand(FortuneCommand):
-    command = 'bmc'
+    command = "bmc"
