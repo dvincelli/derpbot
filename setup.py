@@ -7,5 +7,8 @@ setup(
     install_requires = [
         open('requirements.txt').read().splitlines()
     ],
+    setup_requires=[
+        'wheel'
+    ],
     zip_safe = False
 )

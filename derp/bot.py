@@ -1,7 +1,6 @@
-#!/usr/bin/env python
 import logging
-import getpass
 from optparse import OptionParser
+import os
 
 from derp.backends.xmpp import XMPPBot
 from derp.backends.slack import SlackBot
