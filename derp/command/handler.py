@@ -1,8 +1,6 @@
 import asyncio
 
 
-
-
 class CommandHandler(object):
     def __init__(self, commands, patterns):
         self.commands = commands
@@ -39,4 +37,3 @@ class CommandHandler(object):
                 output = asyncio.run(command(msg))
 
             return mfrom, output
-

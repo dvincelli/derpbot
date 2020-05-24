@@ -5,6 +5,7 @@ import re
 import os
 
 
+logger = logging.getLogger(__name__)
 
 
 class CommandDispatcher(object):
@@ -18,10 +19,8 @@ class CommandDispatcher(object):
         self.message_processor = message_processor
         self.message_responder = message_responder
         if self.message_processing_backend == 'multiprocessing':
-            multiprocessing.log_to_stderr(logging.INFO)
+            multiprocessing.log_to_stderr(logging.ERROR)
             self.pool = multiprocessing.Pool()
-        else:
-            self.pool = queue.Queue()
 
     def put(self, message):
         args = tuple(
@@ -50,6 +49,7 @@ class CommandDispatcher(object):
 
     def __call__(self, *args, **kwargs):
         if len(args) == 1:
+            # XMPP
             message = args[0]
             message["from"] = message["from"].bare
             message["to"] = message["to"].bare
@@ -57,6 +57,11 @@ class CommandDispatcher(object):
             # {'rtm_client': <slack.rtm.client.RTMClient object at 0x7fb51778f860>, 'web_client': <slack.web.client.WebClient object at 0x7fb515cbca20>, 'data': {'client_msg_id': '91181cfe-5db8-4707-b5dd-90e101c5d68e', 'suppress_notification': False, 'text': 'hi', 'user': 'U04HF1BP9', 'team': 'T04EN147C', 'user_team': 'T04EN147C', 'source_team': 'T04EN147C', 'channel': 'DQA2P16G1', 'event_ts': '1573707936.000400', 'ts': '1573707936.000400'}}
             try:
                 slack_message = kwargs["data"]
+
+                if slack_message.get('subtype') == 'bot_message':
+                    # ignore ourself
+                    return
+
                 message = {}
                 message["body"] = slack_message["text"]
                 message["to"] = slack_message["user"]
@@ -64,7 +69,7 @@ class CommandDispatcher(object):
                 message["status"] = "whatever"
                 message["type"] = "who cares"
             except KeyError:
-                print(kwargs)
+                logger.exception("KeyError handling slack_message %r", slack_message)
                 return
 
         repeats = 1
