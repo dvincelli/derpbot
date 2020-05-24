@@ -13,34 +13,62 @@ requests = _requests.Session()
 
 class ImageCommand(object):
     command = "image"
-    safe_search = "active"
+    safe_search = "strict"
 
     def parse(self, body):
         return " ".join(body.split(" ")[1:])
 
-    def google_image_search(self, query, start=0):
+    def _encode_safe_search(self, safe_search):
+        if safe_search == "off":
+            return "0"
+        elif safe_search == "moderate":
+            return "1"
+        elif safe_search == "strict":
+            return "2"
+
+    def qwant_image_search(self, query, start=0, random_result=True):
         params = {
-            "v": "1.0",
-            "rsz": "8",
+            "uiv": "4",
+            "locale": "en_US",
             "q": query,
-            "safe": self.safe_search,
-            "start": start,
+            "t": "image",
+            "count": 10,
+            "safe_search": self._encode_safe_search(self.safe_search),
+            "offset": start,
+            "f": "",
         }
+        # TODO: support other search types:
+        #   "web", "images", "news", "social", "videos", "music"
         response = requests.get(
-            "https://ajax.googleapis.com/ajax/services/search/images", params=params
+            "https://api.qwant.com/api/search/images",
+            params=params,
+            headers={
+                "User-Agent": 'Mozilla/5.0 (X11; Linux x86_64; rv:69.0) Gecko/20100101 Firefox/69.0'
+            }
         )
-        return response.json()
+        results = response.json().get('data', {}).get('result', {}).get('items', [])
+        return results
 
     def query_image(self, query):
         try:
-            images = self.google_image_search(query)
-            start = random.choice(images["responseData"]["cursor"]["pages"])["start"]
-            images = self.google_image_search(query, start)
-            images = images["responseData"]["results"]
+            images = self.qwant_image_search(query)
+            # TODO:
+            # 
+            # Random result from later page:
+            #   1st search: get the number of results
+            #   2nd search: get result page and a random result from that page
+            #   But it should be done optionally
+            # 
+            # This is code that worked with google a few years ago
+            # start = random.choice(images["responseData"]["cursor"]["pages"])["start"]
+            # images = self.qwant_image_search(query, start)
             if images:
-                return random.choice(images)["unescapedUrl"] + "#.png"
+                if random_result:
+                    return random.choice(images)["media_fullsize"] + "#.png"
+                else:
+                    images[0]["media_fullsize"] + "#.png"
         except Exception as e:
-            logger.error(e)
+            logger.exception(str(e))
 
     def __call__(self, msg):
         query = self.parse(msg["body"])
@@ -57,7 +85,7 @@ class HardcoreImageCommand(ImageCommand):
 
     def __call__(self, msg):
         if 9 <= int(time.strftime("%H")) <= 18:
-            self.safe_search = random.choice(["moderate", "active"])
+            self.safe_search = random.choice(["moderate", "strict"])
         else:
             self.safe_search = "off"
         query = self.parse(msg["body"])
@@ -173,7 +201,7 @@ class JjDotAmCommand(object):
     command = "jj"
 
     img_re = re.compile(
-        '<img border="0" src="((http://forgifs.com/gallery/./)(\d+?-\d)/([^"]+?))"'
+        '<img border="0" src="((http://forgifs.com/gallery/./)([0-9]+?-[0-9])/([^"]+?))"'
     )
 
     def __call__(self, msg):
