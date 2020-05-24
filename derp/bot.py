@@ -58,6 +58,8 @@ if __name__ == "__main__":
         )
     elif opts.slack_token:
         bot = SlackBot(opts.slack_token, opts.room, opts.nick)
+    else:
+        raise ValueError("You must provide a Slack Token or XMPP JID")
 
     handler = derp.command.factory.initialize(bot)
     bot.register_message_handler(handler)
