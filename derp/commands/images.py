@@ -26,7 +26,7 @@ class ImageCommand(object):
         elif safe_search == "strict":
             return "2"
 
-    def qwant_image_search(self, query, start=0, random_result=True):
+    def qwant_image_search(self, query, start=0):
         params = {
             "uiv": "4",
             "locale": "en_US",
@@ -49,7 +49,7 @@ class ImageCommand(object):
         results = response.json().get('data', {}).get('result', {}).get('items', [])
         return results
 
-    def query_image(self, query):
+    def query_image(self, query, random_result=False):
         try:
             images = self.qwant_image_search(query)
             # TODO:
@@ -64,9 +64,10 @@ class ImageCommand(object):
             # images = self.qwant_image_search(query, start)
             if images:
                 if random_result:
-                    return random.choice(images)["media_fullsize"] + "#.png"
+                    path = random.choice(images)["media_fullsize"] # + "#.png"
                 else:
-                    images[0]["media_fullsize"] + "#.png"
+                    path = images[0]["media_fullsize"] # + "#.png"
+                return 'https:' + path
         except Exception as e:
             logger.exception(str(e))
 
@@ -201,7 +202,7 @@ class JjDotAmCommand(object):
     command = "jj"
 
     img_re = re.compile(
-        '<img border="0" src="((http://forgifs.com/gallery/./)([0-9]+?-[0-9])/([^"]+?))"'
+        '<img border="0" src="((http://forgifs.com/gallery/./)([\\d]+?-[\\d])/([^"]+?))"'
     )
 
     def __call__(self, msg):
