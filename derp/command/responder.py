@@ -1,9 +1,15 @@
+import logging
+
+
+logger = logging.getLogger(__name__)
+
+
 class CommandResponder(object):
     def __init__(self, bot):
         self.bot = bot
 
     def __call__(self, response):
-        print(response)
+        logger.debug('response is %s', response)
         try:
             mto, mbody = response
         except TypeError:
