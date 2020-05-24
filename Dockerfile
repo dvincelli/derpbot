@@ -8,5 +8,5 @@ RUN pip install -r requirements.txt
 COPY derp/ /derpbot/derp/
 RUN python setup.py install
 
-ENTRYPOINT ["python", "-m", "derp.bot"]
+CMD ["python", "-m", "derp.bot"]
 
