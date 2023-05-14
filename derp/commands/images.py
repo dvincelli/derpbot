@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 requests = _requests.Session()
 
 
-class ImageCommand(object):
+class ImageCommand:
     command = "image"
     safe_search = "strict"
 
@@ -60,7 +60,7 @@ class ImageCommand(object):
             #   But it should be done optionally
             # 
             # This is code that worked with google a few years ago
-            # start = random.choice(images["responseData"]["cursor"]["pages"])["start"]
+            # start = random.choice(images["responseData"]["cursor"]["pages"])r"start"]
             # images = self.qwant_image_search(query, start)
             if images:
                 if random_result:
@@ -172,7 +172,7 @@ class PuppiesImage(FixedImageCommand):
     command = "puppies"
 
 
-class ImgurCommand(object):
+class ImgurCommand:
     command = "imgur"
 
     img_re = re.compile('src="//i.imgur.com/(.+?)"')
@@ -187,7 +187,7 @@ class ImgurCommand(object):
         return f"https://i.imgur.com/{random.choice(images)}"
 
 
-class GifBinCommand(object):
+class GifBinCommand:
     command = "gif"
 
     img_re = re.compile('<img src="([^"]+?)">')
@@ -198,7 +198,7 @@ class GifBinCommand(object):
         return random.choice(images).replace("/tn_", "/")
 
 
-class JjDotAmCommand(object):
+class JjDotAmCommand:
     command = "jj"
 
     img_re = re.compile(
@@ -220,7 +220,7 @@ class JjDotAmCommand(object):
             return "".join([base_url, num, "/", filename])
 
 
-class ForGifsCommand(object):
+class ForGifsCommand:
 
     command = "4gifs"
 

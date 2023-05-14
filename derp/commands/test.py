@@ -7,7 +7,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class EchoCommand(object):
+class EchoCommand:
     command = "echo"
 
     def parse(self, body):
@@ -17,7 +17,7 @@ class EchoCommand(object):
         return self.parse(msg["body"])
 
 
-class PingCommand(object):
+class PingCommand:
     command = "ping"
 
     def __call__(self, msg):

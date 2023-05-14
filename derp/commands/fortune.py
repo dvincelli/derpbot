@@ -2,7 +2,7 @@ import random
 import os
 
 
-class FortuneCommand(object):
+class FortuneCommand:
     command = "fortune"
 
     def __call__(self, msg):

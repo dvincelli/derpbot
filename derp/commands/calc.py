@@ -19,7 +19,7 @@ SYM_LPAREN = "("
 SYM_RPAREN = ")"
 
 
-class CalculatorCommand(object):
+class CalculatorCommand:
     command = "calc"
 
     def is_operator(self, token):

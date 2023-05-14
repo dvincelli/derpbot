@@ -1,4 +1,3 @@
-import asyncio
 import websockets
 from websockets.exceptions import ConnectionClosedError
 
@@ -14,7 +13,7 @@ class TextSynthCommand:
 
     def parse(self, msg):
         return msg['body'][len('!textsynth '):]
-    
+
     async def __call__(self, msg):
         input_text = self.parse(msg)
         output_text = ""

@@ -1,14 +1,14 @@
 import asyncio
 
 
-class CommandHandler(object):
+class CommandHandler:
     def __init__(self, commands, patterns):
         self.commands = commands
         self.patterns = patterns
 
     def parse_message(self, body):
-        if body.startswith("!"):
-            command = body.split(" ", 1)[0]
+        if '!' in body:
+            command = body.split(" ", 1)[1]
             return command
 
         for pattern in self.patterns:
@@ -19,17 +19,15 @@ class CommandHandler(object):
     def find_command(self, cmdname):
         return self.commands.get(cmdname, self.patterns.get(cmdname))
 
-    def __call__(self, mtype, mfrom, mto, body, status):
+    def __call__(self, mfrom, mto, body):
         cmdname = self.parse_message(body)
         command = self.find_command(cmdname)
 
         if command:
             msg = {
-                "type": mtype,
                 "from": mfrom,
                 "to": mto,
                 "body": body,
-                "status": status,
             }
             if not getattr(command, 'is_async', False):
                 output = command(msg)

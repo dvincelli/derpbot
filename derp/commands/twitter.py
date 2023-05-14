@@ -11,7 +11,7 @@ import requests as _requests
 requests = _requests.Session()
 
 
-class TwitterCommand(object):
+class TwitterCommand:
     command = "tweets"
 
     def find_tweets(self, handle):

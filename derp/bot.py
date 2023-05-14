@@ -2,13 +2,16 @@ import logging
 from optparse import OptionParser
 import os
 
-from derp.backends.xmpp import XMPPBot
+import dotenv
+
 from derp.backends.slack import SlackBot
 
 import derp.command.factory
 
 
 if __name__ == "__main__":
+    dotenv.load_dotenv()
+
     # Setup the command line arguments.
     optp = OptionParser()
 
@@ -32,32 +35,38 @@ if __name__ == "__main__":
         default=logging.INFO,
     )
 
-    # JID and password options.
-    optp.add_option("-j", "--jid", dest="jid", help="JID to use (XMPP only)")
-    optp.add_option("-p", "--password", dest="password", help="password to use (XMPP only)")
+    optp.add_option("-s", "--slack-token", dest="slack_token", help="slack bot token")
+    optp.add_option("-t", "--slack-app-token", dest="slack_app_token", help="slack app token")
     optp.add_option("-r", "--room", dest="room", help="channel or room to join")
-    optp.add_option("-n", "--nick", dest="nick", help="bot nickname", default="derp")
-
-    # Or slack token
-    optp.add_option("-s", "--slack-token", dest="slack_token", help="slack API token")
+    optp.add_option("-n", "--nick", dest="nick", help="bot nickname", default="enertel.ai")
 
     opts, args = optp.parse_args()
 
-    # Setup logging.
     logging.basicConfig(level=opts.loglevel)
 
-    if opts.jid:
-        bot = XMPPBot(
-            opts.jid, opts.password, opts.room, opts.nick, message_handler=handler
-        )
-    elif opts.slack_token:
-        bot = SlackBot(opts.slack_token, opts.room, opts.nick)
-    elif os.getenv("DERP_SLACK_TOKEN", None):
-        bot = SlackBot(os.getenv("DERP_SLACK_TOKEN"), opts.room, opts.nick)
-    else:
-        raise ValueError("You must provide a Slack Token or XMPP JID")
+    slack_token = None
+    if opts.slack_token:
+        slack_token = opts.slack_token
+    elif os.getenv("SLACK_TOKEN", None):
+        slack_token = os.getenv("SLACK_TOKEN")
+
+    if slack_token is None:
+        raise ValueError("You must provide a Slack Bot Token")
+
+    slack_app_token = None
+    if opts.slack_app_token:
+        slack_app_token = opts.slack_app_token
+    elif os.getenv("SLACK_APP_TOKEN", None):
+        slack_app_token = os.getenv("SLACK_APP_TOKEN")
+
+    if slack_app_token is None:
+        raise ValueError("You must provide a Slack App Token")
+
+    bot = SlackBot(slack_token, slack_app_token, opts.room, opts.nick)
 
     handler = derp.command.factory.initialize(bot)
+
     bot.register_message_handler(handler)
+    #bot.say('#general', 'hello')
 
     bot.run()

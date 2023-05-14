@@ -7,7 +7,7 @@ import logging
 logger = logging.getLogger("derp.command.loader")
 
 
-class CommandLoader(object):
+class CommandLoader:
 
     commands = {}
     patterns = {}
