@@ -1,11 +1,9 @@
+arrow
 cssselect
 python-dotenv
-gevent
-greenlet
-lxml
-multidict
-slixmpp
+matplotlib
+pandas
 requests
 slack_sdk
-websockets
-yarl
+prometheus-pandas
+lark
