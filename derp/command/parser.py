@@ -1,7 +1,8 @@
 from lark import Lark, Transformer
 
 
-l = Lark('''?start: mention command args
+l = Lark(
+    """?start: mention command args
 
             mention: "<" "@" CNAME ">"
 
@@ -27,14 +28,13 @@ l = Lark('''?start: mention command args
                 | "false"
                 | "True"
                 | "False"
-                | "0"
-                | "1"
 
 
             %import common (ESCAPED_STRING, CNAME, INT, FLOAT, WS)
 
             %ignore WS
-         ''')
+         """
+)
 
 
 class CommandTransformer(Transformer):
@@ -42,7 +42,7 @@ class CommandTransformer(Transformer):
         return s
 
     def mention(self, m):
-        return ""
+        return m
 
     def symbol(self, sym):
         return sym
@@ -61,11 +61,6 @@ class CommandTransformer(Transformer):
             return True
         elif lb == "false":
             return False
-        elif lb == "0":
-            return False
-        else:
-            # lb == "1"
-            return True
 
     def int(self, i):
         (i,) = i
@@ -92,5 +87,6 @@ def parse(msg):
     tree = l.parse(msg)
     return CommandTransformer().transform(tree)
 
-#pprint(l.parse('prom query_range="" start="" end=1.23 step="5m"'))
+
+# pprint(l.parse('prom query_range="" start="" end=1.23 step="5m"'))
 # parse(r'''prom query_range="up { kubernetes_namespace=\"staging\" }" start="5" end=1.23 step="5m"''')

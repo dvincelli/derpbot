@@ -1,4 +1,4 @@
-from slack_sdk  import WebClient
+from slack_sdk import WebClient
 from slack_sdk.socket_mode import SocketModeClient
 from slack_sdk.socket_mode.response import SocketModeResponse
 from slack_sdk.socket_mode.request import SocketModeRequest
@@ -18,7 +18,7 @@ class SlackBot:
 
     @classmethod
     def from_env(cls):
-        return cls(os.getenv('SLACK_TOKEN'), os.getenv('SLACK_APP_TOKEN'))
+        return cls(os.getenv("SLACK_TOKEN"), os.getenv("SLACK_APP_TOKEN"))
 
     def register_message_handler(self, handler):
         def process(client: SocketModeClient, req: SocketModeRequest):
@@ -42,9 +42,9 @@ class SlackBot:
 
     def upload(self, title, filename, content) -> str:
         new_file = self.web_client.files_upload_v2(
-                title=title,
-                filename=filename,
-                file=content if hasattr(content, 'read') else None,
-                content=content if not hasattr(content, 'read') else None,
-            )
-        return new_file.get('file').get('permalink')
+            title=title,
+            filename=filename,
+            file=content if hasattr(content, "read") else None,
+            content=content if not hasattr(content, "read") else None,
+        )
+        return new_file.get("file").get("permalink")

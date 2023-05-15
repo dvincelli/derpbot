@@ -8,7 +8,6 @@ logger = logging.getLogger("derp.command.loader")
 
 
 class CommandLoader:
-
     commands = {}
     patterns = {}
 

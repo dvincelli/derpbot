@@ -43,30 +43,30 @@ class ImageCommand:
             "https://api.qwant.com/v3/search/images",
             params=params,
             headers={
-                "User-Agent": 'Mozilla/5.0 (X11; Linux x86_64; rv:69.0) Gecko/20100101 Firefox/69.0'
-            }
+                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:69.0) Gecko/20100101 Firefox/69.0"
+            },
         )
-        results = response.json().get('data', {}).get('result', {}).get('items', [])
+        results = response.json().get("data", {}).get("result", {}).get("items", [])
         return results
 
     def query_image(self, query, random_result=False):
         try:
             images = self.qwant_image_search(query)
             # TODO:
-            # 
+            #
             # Random result from later page:
             #   1st search: get the number of results
             #   2nd search: get result page and a random result from that page
             #   But it should be done optionally
-            # 
+            #
             # This is code that worked with google a few years ago
             # start = random.choice(images["responseData"]["cursor"]["pages"])r"start"]
             # images = self.qwant_image_search(query, start)
             if images:
                 if random_result:
-                    path = random.choice(images)["media_fullsize"] # + "#.png"
+                    path = random.choice(images)["media_fullsize"]  # + "#.png"
                 else:
-                    path = images[0]["media_fullsize"] # + "#.png"
+                    path = images[0]["media_fullsize"]  # + "#.png"
                 return path
         except Exception as e:
             logger.exception(str(e))
@@ -221,7 +221,6 @@ class JjDotAmCommand:
 
 
 class ForGifsCommand:
-
     command = "4gifs"
 
     img_re = re.compile('&lt;img src="([^"]+?)"/&gt;')

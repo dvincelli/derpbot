@@ -27,7 +27,6 @@ class TwitterCommand:
 
 
 class TwitterHandleCommand(TwitterCommand):
-
     command = None
     handle = "twitter"
 

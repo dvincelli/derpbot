@@ -9,7 +9,7 @@ class CommandResponder:
         self.bot = bot
 
     def __call__(self, response):
-        logger.debug('response is %r', response)
+        logger.debug("response is %r", response)
         # This is weird, feels useless. Should refactor.
 
         try:
@@ -19,8 +19,8 @@ class CommandResponder:
             return
 
         if callable(text):
-            if text.args.get('channel') is None:
-                text.args['channel'] = channel
+            if text.args.get("channel") is None:
+                text.args["channel"] = channel
             return text(self.bot)
 
         self.bot.say(channel=channel, text=text)

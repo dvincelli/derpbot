@@ -6,9 +6,7 @@ class FortuneCommand:
     command = "fortune"
 
     def __call__(self, msg):
-        path = os.path.join(
-                os.path.dirname(__file__), "..", "fortunes", self.command
-            )
+        path = os.path.join(os.path.dirname(__file__), "..", "fortunes", self.command)
         filesize = os.path.getsize(path)
         fortune_file = open(path, "rb")
 

@@ -58,18 +58,17 @@ class ShareFileResponse(BaseResponse):
 
     def __call__(self, bot: SlackBot):
         file_url = bot.upload(
-            title=self.args['title'],
-            filename=self.args['filename'],
-            content=self.args['content']
+            title=self.args["title"],
+            filename=self.args["filename"],
+            content=self.args["content"],
         )
-        text = self.args['text'].format(file_url=file_url)
+        text = self.args["text"].format(file_url=file_url)
 
-        if self.args.get('channel') is None:
-            raise ValueError('No channel found in args')
+        if self.args.get("channel") is None:
+            raise ValueError("No channel found in args")
 
         return bot.say(
-            channel=self.args.get('channel'),
-            thread_ts=self.args.get('thread_ts'),
-            text=text
+            channel=self.args.get("channel"),
+            thread_ts=self.args.get("thread_ts"),
+            text=text,
         )
-
