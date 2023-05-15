@@ -1,6 +1,7 @@
 import logging
 from optparse import OptionParser
 import os
+import coloredlogs
 
 import dotenv
 
@@ -42,7 +43,7 @@ if __name__ == "__main__":
 
     opts, args = optp.parse_args()
 
-    logging.basicConfig(level=opts.loglevel)
+    coloredlogs.install(level=opts.loglevel)
 
     slack_token = None
     if opts.slack_token:
@@ -62,7 +63,7 @@ if __name__ == "__main__":
     if slack_app_token is None:
         raise ValueError("You must provide a Slack App Token")
 
-    bot = SlackBot(slack_token, slack_app_token, opts.room, opts.nick)
+    bot = SlackBot(slack_token, slack_app_token)
 
     handler = derp.command.factory.initialize(bot)
 

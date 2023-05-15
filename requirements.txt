@@ -1,5 +1,6 @@
 arrow
 cssselect
+coloredlogs
 python-dotenv
 matplotlib
 pandas
@@ -7,3 +8,5 @@ requests
 slack_sdk
 prometheus-pandas
 lark
+lxml
+websockets
