@@ -12,8 +12,6 @@ class FortuneCommand:
         filesize = os.path.getsize(path)
         fortune_file = open(path, "rb")
 
-        fortune = []
-
         startpos = random.randint(0, filesize)
         fortune_file.seek(startpos)
         x = fortune_file.read(1)
