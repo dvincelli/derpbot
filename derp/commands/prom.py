@@ -1,8 +1,16 @@
+import io
 import requests
 import os
 import time
-
+from typing import Optional, Union
+import matplotlib.pyplot as plt
 from prometheus_pandas.query import Prometheus as PrometheusPandas
+from datetime import datetime, timedelta
+import logging
+from derp.command.response import SayResponse, ShareFileResponse, ShareFileArgs
+
+
+logger = logging.getLogger(__name__)
 
 
 def prometheus_pandas(access_token, url):
@@ -22,13 +30,14 @@ def prometheus_pandas_from_env():
 
 class PromCommand:
     command = 'prom'
+    wants_parse = True
 
     def __init__(self):
         self._access_token = None
         self._access_token_expires_at = 0
 
     def access_token(self):
-        # Should do this via dependency injection...
+        # Should do this via dependency injection / provider...
 
         if self._access_token and time.time() < self._access_token_expires_at:
             return self._access_token
@@ -57,27 +66,75 @@ class PromCommand:
         url = os.getenv('PROMETHEUS_URL')
         return prometheus_pandas(access_token, url)
 
-    def __call__(self, msg):
-        parts = msg.split(' ')[1:]
-        cmd = parts[0]
+    def __call__(self, command):
+        df = self._request(command)
+        logger.debug('Returning df %s', df)
+        return str(df)
 
-        if cmd == 'query':
-            return self.query(parts)
+    def _request(self, command):
+        cmd = command[1]
+        args = command[2]
+        logger.debug('running %r with %r', cmd, args)
 
-        if cmd == 'query_range':
-            return self.query_range(parts)
+        if 'query' in args:
+            logger.debug('query with %r', args)
+            return self.query(**args)
 
-        if cmd == 'series':
-            return self.series(parts)
+        if 'query_range' in args:
+            logger.debug('query_range with %r', args)
+            return self.query_range(**args)
 
-    def query(self, parts):
+    def query(self, query: str, time: Optional[Union[int, str]] = None , timeout: Optional[int] = None):
         client = self.client()
-        client.query()
+        logger.debug("Got client %r", client)
+        df = client.query(query=query, time=time, timeout=timedelta(seconds=timeout) if timeout is not None else None)
+        logger.debug("Got df %r", df)
+        return df
 
-    def query_range(self, parts):
-        pass
+    def query_range(self, query_range: str, start: Union[str, datetime, float], end: Union[str, datetime, float], step: str, timeout: Optional[int] = None):
+        client = self.client()
+        logger.debug("Got client %r", client)
+        df = client.query_range(query=query_range, start=start, end=end, step=step, timeout=timedelta(seconds=timeout) if timeout is not None else None)
+        logger.debug("Got df %r", df)
+        return df
 
-    def series(self, parts):
-        pass
 
+class VizCommand(PromCommand):
+    command = 'viz'
 
+    def query(self, *args, **kwargs):
+        return super().query(*args, **kwargs)
+
+    def query_range(self, *args, **kwargs):
+        kind = kwargs.pop('kind', 'line')
+        df = super().query_range(*args, **kwargs)
+        df.plot(kind=kind)
+        buf = io.BytesIO()
+        plt.savefig(buf, format="png")
+        buf.seek(0)
+        return buf
+
+    def __call__(self, command):
+        cmd = command[1]
+        args = command[2]
+
+        if 'query' in args:
+            logger.debug('query with %r', args)
+            return self.query(**args)
+
+        if 'query_range' in args:
+            logger.debug('query_range with %r', args)
+            # args are not the command args (...?)
+            #title = "{query_range} from {start} to {end} in {step} steps".format(args)
+            filename = 'plot.png'
+            content = self.query_range(**args)
+            return ShareFileResponse(
+                args=ShareFileArgs(
+                    title="The title",
+                    filename=filename,
+                    content=content,
+                    text="Here is the plot you asked for {file_url}",
+                    channel=None,
+                    thread_ts=None,
+                )
+            )
