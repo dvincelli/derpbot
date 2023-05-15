@@ -3,7 +3,12 @@ from slack_sdk.socket_mode import SocketModeClient
 from slack_sdk.socket_mode.response import SocketModeResponse
 from slack_sdk.socket_mode.request import SocketModeRequest
 from threading import Event
+import logging
+import requests
 import os
+
+
+logger = logging.getLogger(__name__)
 
 
 class SlackBot:
@@ -17,8 +22,11 @@ class SlackBot:
 
     def register_message_handler(self, handler):
         def process(client: SocketModeClient, req: SocketModeRequest):
-            print(client, req)
+            response = SocketModeResponse(envelope_id=req.envelope_id)
+            client.send_socket_mode_response(response)
+
             return handler(client, req)
+
         self.socket_client.socket_mode_request_listeners.append(process)
 
     def run(self):
@@ -26,10 +34,11 @@ class SlackBot:
         self.socket_client.connect()
         Event().wait()
 
-    def say(self, to, body):
-        self.web_client.chat_postMessage(
-            channel=to, text=body or "Nothing",
-        )
+    def say(self, channel, text, thread_ts=None):
+        if text is not None:
+            self.web_client.chat_postMessage(
+                channel=channel, text=text, thread_ts=thread_ts
+            )
 
     def upload(self, title, filename, content) -> str:
         new_file = self.web_client.files_upload_v2(

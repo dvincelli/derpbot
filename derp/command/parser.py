@@ -1,7 +1,9 @@
 from lark import Lark, Transformer
 
 
-l = Lark('''?start: command args
+l = Lark('''?start: mention command args
+
+            mention: "<" "@" CNAME ">"
 
             args: (arg | ((arg)" "+)*) (arg)?
 
@@ -38,6 +40,9 @@ l = Lark('''?start: command args
 class CommandTransformer(Transformer):
     def start(self, s):
         return s
+
+    def mention(self, m):
+        return ""
 
     def symbol(self, sym):
         return sym

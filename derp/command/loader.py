@@ -37,7 +37,7 @@ class CommandLoader:
         try:
             command = klass.command
             if command:
-                self.commands["!" + command] = klass()
+                self.commands[command] = klass()
         except AttributeError:
             pass
 
