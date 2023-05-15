@@ -40,7 +40,7 @@ class ImageCommand:
         # TODO: support other search types:
         #   "web", "images", "news", "social", "videos", "music"
         response = requests.get(
-            "https://api.qwant.com/api/search/images",
+            "https://api.qwant.com/v3/search/images",
             params=params,
             headers={
                 "User-Agent": 'Mozilla/5.0 (X11; Linux x86_64; rv:69.0) Gecko/20100101 Firefox/69.0'
@@ -67,7 +67,7 @@ class ImageCommand:
                     path = random.choice(images)["media_fullsize"] # + "#.png"
                 else:
                     path = images[0]["media_fullsize"] # + "#.png"
-                return 'https:' + path
+                return path
         except Exception as e:
             logger.exception(str(e))
 
