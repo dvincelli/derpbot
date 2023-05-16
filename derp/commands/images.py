@@ -160,10 +160,6 @@ class SlothsImage(FixedImageCommand):
     command = "sloths"
 
 
-class SlothBucketImage(FixedImageCommand):
-    command = "slothbucket"
-
-
 class PuppyImage(FixedImageCommand):
     command = "puppy"
 
@@ -178,7 +174,7 @@ class ImgurCommand:
     img_re = re.compile('src="//i.imgur.com/(.+?)"')
 
     def parse(self, body):
-        return " ".join(body.split(" ")[1:])
+        return " ".join(body.split(" ")[2:])
 
     def __call__(self, msg):
         keyword = self.parse(msg["body"])
@@ -235,5 +231,5 @@ class CringeCommand(ImgurCommand):
     command = "cringe"
 
     def __call__(self, msg):
-        msg["body"] = "!imgur cringepics"
+        msg["body"] = "_ imgur cringepics"
         return ImgurCommand.__call__(self, msg)
