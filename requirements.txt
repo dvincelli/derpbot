@@ -9,5 +9,3 @@ requests
 slack_sdk
 prometheus-pandas
 lark
-lxml
-websockets
