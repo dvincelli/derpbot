@@ -1,8 +1,8 @@
 from lark import Lark, Transformer
 
 
-l = Lark(
-    """?start: mention command args
+keypair_lang = Lark(
+    """?start: mention? command args
 
             mention: "<" "@" CNAME ">"
 
@@ -37,7 +37,7 @@ l = Lark(
 )
 
 
-class CommandTransformer(Transformer):
+class KeypairCommandTransformer(Transformer):
     def start(self, s):
         return s
 
@@ -84,10 +84,6 @@ class CommandTransformer(Transformer):
     args = dict
 
 
-def parse(msg):
-    tree = l.parse(msg)
-    return CommandTransformer().transform(tree)
-
-
-# pprint(l.parse('prom query_range="" start="" end=1.23 step="5m"'))
-# parse(r'''prom query_range="up { kubernetes_namespace=\"staging\" }" start="5" end=1.23 step="5m"''')
+def parse(text: str):
+    tree = keypair_lang.parse(text)
+    return KeypairCommandTransformer().transform(tree)

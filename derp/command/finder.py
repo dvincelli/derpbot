@@ -1,11 +1,10 @@
-import asyncio
 import logging
 from derp.command.parser import parse
 
 logger = logging.getLogger(__name__)
 
 
-class CommandHandler:
+class CommandFinder:
     def __init__(self, commands, patterns):
         self.commands = commands
         self.patterns = patterns
@@ -32,19 +31,4 @@ class CommandHandler:
 
     def __call__(self, msg):
         cmdname = self.parse_message(msg["body"])
-        command = self.find_command(cmdname)
-
-        if command:
-            if getattr(command, "wants_parse", False):
-                args = parse(msg["body"])
-            else:
-                args = msg
-
-            if not getattr(command, "is_async", False):
-                logger.debug("Running %r with args %r", command, args)
-                response = command(args)
-            else:
-                logger.debug("Awaiting %r with args %r", command, args)
-                response = asyncio.run(command(args))
-
-            return msg["from"], response
+        return self.find_command(cmdname)
