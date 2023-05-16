@@ -73,7 +73,7 @@ class PromCommand:
     def __call__(self, command):
         df = self._request(command)
         logger.debug("Returning df %s", df)
-        return f'```\n{df}\n```'
+        return f"```\n{df}\n```"
 
     def _request(self, command):
         cmd = command[1]

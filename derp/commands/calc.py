@@ -187,7 +187,7 @@ class CalculatorCommand:
 
     def __call__(self, input):
         (_, _, args) = input
-        expr = args['expr']
+        expr = args["expr"]
         try:
             postfix = self.to_postfix(expr)
         except ParseError:
