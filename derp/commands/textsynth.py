@@ -1,41 +1,29 @@
-import websockets
-from websockets.exceptions import ConnectionClosedError
-
-
-TEXTSYNTH_WEBSOCKET_URL = "ws://163.172.76.10:8080/"
+import requests
+import os
 
 
 class TextSynthCommand:
     command = "textsynth"
-    is_async = True
+    engines = [
+        "gptj_6B",
+        "boris_6B",
+        "fairseq_gpt_13B",
+        "gptneox_20B",
+        "flan_t5_xxl",
+        "codegen_6B_mono",
+        "m2m100_1_2B",
+        "stable_diffusion",
+    ]
+    url = "https://api.textsynth.com/v1/engines/{engine_id}/translate"
+    wants_parse = True
 
-    socket_url = TEXTSYNTH_WEBSOCKET_URL
-
-    def parse(self, msg):
-        return msg["body"][len("!textsynth ") :]
-
-    async def __call__(self, msg):
-        input_text = self.parse(msg)
-        output_text = ""
-        extra_headers = (
-            (
-                "User-Agent",
-                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/2019.04 Iridium/2019.04 Safari/537.36 Chrome/73.0.0.0",
-            ),
-            ("Origin", "http://textsynth.org"),
+    def __call__(self, command):
+        (_, command, args) = command
+        api_key = os.getenv("TEXTSYNTH_API_KEY")
+        engine_id = args.get("engine", "fairseq_gpt_13B")
+        response = requests.post(
+            self.url.format(engine_id=engine_id),
+            json={"prompt": args["prompt"]},
+            headers={"Authorization": f"Bearer {api_key}"},
         )
-
-        async with websockets.connect(
-            self.socket_url, extra_headers=extra_headers
-        ) as ws:
-            await ws.send("g," + input_text)
-
-            data = await ws.recv()
-            while data != "":
-                output_text += data
-                try:
-                    data = await ws.recv()
-                except ConnectionClosedError:
-                    break
-
-            return input_text + output_text
+        return response.json()["text"]
