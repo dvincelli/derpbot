@@ -66,5 +66,8 @@ if __name__ == "__main__":
     bot = SlackBot(slack_token, slack_app_token)
 
     derp.command.factory.initialize(bot)
+    from derp.scheduler import register_queue_job, scheduler
+    register_queue_job(bot)
 
+    scheduler.start()
     bot.run()

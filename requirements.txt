@@ -1,4 +1,5 @@
 arrow
+apscheduler
 cssselect
 coloredlogs
 python-dotenv
@@ -8,5 +9,3 @@ requests
 slack_sdk
 prometheus-pandas
 lark
-lxml
-websockets
