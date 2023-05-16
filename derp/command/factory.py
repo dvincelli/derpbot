@@ -4,6 +4,8 @@ from derp.command.loader import CommandLoader
 
 
 def initialize(bot):
-    command_loader = CommandLoader()
-    command_finder = CommandFinder(command_loader.commands, command_loader.patterns)
-    return CommandRunner(command_finder, bot)
+    loader = CommandLoader()
+    finder = CommandFinder(loader.commands, loader.patterns)
+    runner = CommandRunner(finder, bot)
+    bot.register_message_handler(runner)
+    return bot

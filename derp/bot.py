@@ -65,9 +65,6 @@ if __name__ == "__main__":
 
     bot = SlackBot(slack_token, slack_app_token)
 
-    handler = derp.command.factory.initialize(bot)
-
-    bot.register_message_handler(handler)
-    # bot.say('#general', 'hello')
+    derp.command.factory.initialize(bot)
 
     bot.run()
