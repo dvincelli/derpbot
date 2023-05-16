@@ -1,0 +1,25 @@
+_metadata:
+  major_version: 1
+  minor_version: 1
+display_information:
+  name: Bot
+features:
+  bot_user:
+    display_name: bot
+oauth_config:
+  scopes:
+    bot:
+      # Used to send messages to a channel
+      - chat:write
+      # This scope is not required if your app will just upload files. We've included it in order to use the `files.info` `files.list` methods.
+      - files:read
+      # Used to upload files to Slack
+      - files:write
+      # View messages that directly mention @enertel.ai in conversations that the app is in
+      - app_mentions:read
+      # Join public channels in a workspace
+      - channels:join
+      # Post messages to specific channels in Slack
+      - incoming-webhook
+      # View messages and other content in direct messages that enertel.ai has been added to
+      - im:history
