@@ -14,7 +14,7 @@ def queue_status(bot):
     response = queue_lengths(["@scheduler", "queues", {}])
     if callable(response):
         response.args["channel"] = "#general"
-        now = arrow.now.format("MM-DD HH:mm")
+        now = arrow.now().format("YYYY-MM-DD HH:mm")
         response.args["title"] = f"Queue Lengths as of {now}"
         response(bot)
 

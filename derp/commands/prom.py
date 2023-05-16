@@ -150,7 +150,7 @@ class VizCommand(PromCommand):
 
         if "query_range" in args:
             logger.debug("query_range with %r", args)
-            title = "{query_range} from {start} to {end} in {step} steps".format(args)
+            title = "{query_range} from {start} to {end} in {step} steps".format(**args)
             filename = "plot.png"
             content = self.query_range(**args)
             return ShareFileResponse(
