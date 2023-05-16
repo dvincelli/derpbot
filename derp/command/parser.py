@@ -42,7 +42,7 @@ class CommandTransformer(Transformer):
         return s
 
     def mention(self, m):
-        return m
+        return f"<@{m.value}>"
 
     def symbol(self, sym):
         return sym
