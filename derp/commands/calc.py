@@ -1,6 +1,10 @@
 import itertools
 import operator
 import re
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class ParseError(Exception):
@@ -21,6 +25,7 @@ SYM_RPAREN = ")"
 
 class CalculatorCommand:
     command = "calc"
+    wants_parse = True
 
     def is_operator(self, token):
         return token in OPERATORS
@@ -41,6 +46,8 @@ class CalculatorCommand:
             return 1
         if token == SYM_RPAREN:
             return 0
+
+        return -1
 
     def to_postfix(self, infix):
         stack = []
@@ -168,7 +175,7 @@ class CalculatorCommand:
             if isinstance(token, (float, int)):
                 stack.append(token)
             elif token in OPERATORS:
-                op = ops.get(token)
+                op = ops[token]
                 term = stack.pop()
                 factor = stack.pop()
                 result = op(factor, term)
@@ -178,9 +185,10 @@ class CalculatorCommand:
         else:
             raise ParseError(" ".join(map(str, stack)))
 
-    def __call__(self, msg):
+    def __call__(self, input):
+        (_, _, args) = input
+        expr = args['expr']
         try:
-            expr = msg["body"][len(self.command) + 1 :].strip()
             postfix = self.to_postfix(expr)
         except ParseError:
             return "parse error: " + expr
@@ -190,17 +198,18 @@ class CalculatorCommand:
 class RPNCalculatorCommand(CalculatorCommand):
     command = "rpn"
 
-    re_int = re.compile("^-?\d+$")
-    re_float = re.compile("^-?\d+\.\d+$")
+    re_int = re.compile(r"^-?\d+$")
+    re_float = re.compile(r"^-?\d+\.\d+$")
 
-    def __call__(self, msg):
-        input = msg["body"][len(self.command) + 1 :].strip().split(" ")
+    def __call__(self, input):
+        (_, _, args) = input
+        expr = args["expr"].split(" ")
         postfix = []
-        for item in input:
+        for item in expr:
             if self.re_int.match(item):
                 postfix.append(int(item))
             elif self.re_float.match(item):
                 postfix.append(float(item))
             elif item:
                 postfix.append(item)
-        return " ".join(input) + " = " + str(self.eval(postfix))
+        return " ".join(expr) + " = " + str(self.eval(postfix))
