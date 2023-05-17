@@ -170,7 +170,7 @@ class QueueLengths(VizCommand):
     def __call__(self, command):
         end = arrow.now()
         start = end.shift(hours=-1)
-        return super().__call__(
+        response = super().__call__(
             [
                 command[0],
                 "queues",
@@ -182,6 +182,9 @@ class QueueLengths(VizCommand):
                 ),
             ]
         )
+        now = end.format("YYYY-MM-DD HH:mm")
+        response.args["title"] = f"Queue Lengths as of {now}"
+        return response
 
 
 class K8sCommand(PromCommand):
@@ -189,23 +192,24 @@ class K8sCommand(PromCommand):
     wants_parse = True
 
     queries = {
-        "pod-count": "sum by (namespace) (kube_pod_info)",
-        "cpu-overcommit": 'sum(kube_pod_container_resource_limits{resource="cpu"}) - sum(kube_node_status_capacity{resource="cpu"})',
-        "mem-overcommit": 'sum(kube_pod_container_resource_limits{resource="memory"}) - sum(kube_node_status_capacity{resource="memory"})',
-        "unhealthy-pods": 'min_over_time(sum by (namespace, pod) (kube_pod_status_phase{phase=~"Pending|Unknown|Failed"})[15m:1m]) > 0',
-        "crashloop-pods": "increase(kube_pod_container_status_restarts_total[15m]) > 3",
-        "cpu-no-limit": 'count by (namespace)(sum by (namespace,pod,container)(kube_pod_container_info{container!=""}) unless sum by (namespace,pod,container)(kube_pod_container_resource_limits{resource="cpu"}))',
-        "pvc-pending": 'kube_persistentvolumeclaim_status_phase{phase="Pending"}',
-        "nodes-unstable": 'sum(changes(kube_node_status_condition{status="true",condition="Ready"}[15m])) by (node) > 2',
         "cpu-idle": 'sum((rate(container_cpu_usage_seconds_total{container!="POD",container!=""}[30m]) - on (namespace,pod,container) group_left avg by (namespace,pod,container)(kube_pod_container_resource_requests{resource="cpu"})) * -1 >0)',
+        "cpu-no-limit": 'count by (namespace)(sum by (namespace,pod,container)(kube_pod_container_info{container!=""}) unless sum by (namespace,pod,container)(kube_pod_container_resource_limits{resource="cpu"}))',
+        "cpu-overcommit": 'sum(kube_pod_container_resource_limits{resource="cpu"}) - sum(kube_node_status_capacity{resource="cpu"})',
         "mem-idle": 'sum((container_memory_usage_bytes{container!="POD",container!=""} - on (namespace,pod,container) avg by (namespace,pod,container)(kube_pod_container_resource_requests{resource="memory"})) * -1 >0 ) / (1024*1024*1024)',
-        "node-ready": 'sum(kube_node_status_condition{condition="Ready",status="true"})',
+        "mem-overcommit": 'sum(kube_pod_container_resource_limits{resource="memory"}) - sum(kube_node_status_capacity{resource="memory"})',
         "node-not-ready": 'sum(kube_node_status_condition{condition="NotReady",status="true"})',
+        "node-ready": 'sum(kube_node_status_condition{condition="Ready",status="true"})',
+        "node-unstable": 'sum(changes(kube_node_status_condition{status="true",condition="Ready"}[15m])) by (node) > 2',
         "node-unschedulable": "sum(kube_node_spec_unschedulable) by (node)",
+        "pod-count": "sum by (namespace) (kube_pod_info)",
+        "pod-pending": 'kube_pod_status_phase {exported_namespace="mynamespace", phase="Pending"} > 0.',
+        "pod-restarts": "increase(kube_pod_container_status_restarts_total[15m]) > 3",
+        "pod-unhealthy": 'min_over_time(sum by (namespace, pod) (kube_pod_status_phase{phase=~"Pending|Unknown|Failed"})[15m:1m]) > 0',
+        "pvc-pending": 'kube_persistentvolumeclaim_status_phase{phase="Pending"} > 0',
     }
 
     def __call__(self, cmd):
-        (mention, command, args) = cmd
+        (mention, _, args) = cmd
 
         if args.get("query") in self.queries:
             argz = args.copy()

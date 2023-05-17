@@ -8,6 +8,7 @@ import dotenv
 from derp.backends.slack import SlackBot
 
 import derp.command.factory
+import derp.scheduler
 
 
 if __name__ == "__main__":
@@ -66,9 +67,6 @@ if __name__ == "__main__":
     bot = SlackBot(slack_token, slack_app_token)
 
     derp.command.factory.initialize(bot)
-    from derp.scheduler import register_queue_job, scheduler
+    derp.scheduler.initialize(bot)
 
-    register_queue_job(bot)
-
-    scheduler.start()
     bot.run()

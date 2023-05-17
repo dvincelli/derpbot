@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 class CommandRunner:
     def __init__(self, command_finder, bot):
-        self._find_command = command_finder
+        self.find_command = command_finder
         self.bot = bot
 
     def _respond(self, response, thread_ts):
@@ -59,7 +59,7 @@ class CommandRunner:
             message["from"] = slack_message["channel"]
             thread_ts = slack_message.get("ts")
 
-            command = self._find_command(message)
+            command = self.find_command(message)
             response = self._run(message, command)
 
             self._respond(response, thread_ts)

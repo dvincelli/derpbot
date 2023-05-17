@@ -27,7 +27,12 @@ class SlackBot:
 
             return handler(client, req)
 
+        self.handler = handler
+
         self.socket_client.socket_mode_request_listeners.append(process)
+
+    def handle_request(self, req):
+        self.handler(self.socket_client, req)
 
     def run(self):
         self.web_client.api_test()

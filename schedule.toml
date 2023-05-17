@@ -1,0 +1,7 @@
+[jobs]
+
+[jobs.queues]
+channel = "#general"
+command = "queues"
+trigger = "cron"
+trigger_args = { year = "*", month = "*", day = "*", hour = "7,8,9,10,11,12", minute="0", timezone="US/Eastern" }

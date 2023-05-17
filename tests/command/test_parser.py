@@ -13,9 +13,7 @@ def test_keypair_parse():
 
 
 def test_keypair_parse__nulls():
-    transformed = parse(
-        '<@mention> cmd k=None k1=nil k2=none k3=null'
-        )
+    transformed = parse("<@mention> cmd k=None k1=nil k2=none k3=null")
 
     assert transformed == [
         "<@mention>",
