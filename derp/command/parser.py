@@ -17,6 +17,7 @@ keypair_lang = Lark(
                  | int
                  | float
                  | bool
+                 | nil
                  | symbol
 
             string: ESCAPED_STRING
@@ -27,6 +28,11 @@ keypair_lang = Lark(
                 | "True"    -> true
                 | "false"   -> false
                 | "False"   -> false
+
+            nil: "none"     -> null
+                | "None"    -> null
+                | "null"    -> null
+                | "nil"     -> null
 
             %import common (ESCAPED_STRING, CNAME, INT, FLOAT, WS)
 
@@ -60,6 +66,9 @@ class KeypairCommandTransformer(Transformer):
 
     def false(self, _):
         return False
+
+    def null(self, _):
+        return None
 
     def int(self, i):
         (i,) = i
