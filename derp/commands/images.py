@@ -101,7 +101,7 @@ class ModerateImageCommand(ImageCommand):
 class FixedImageCommand(ImageCommand):
     command = None
 
-    def __call__(self, msg):
+    def __call__(self, _):
         return self.query_image(self.command)
 
 
@@ -140,14 +140,14 @@ class PugsImage(FixedImageCommand):
 class AwwImage(FixedImageCommand):
     command = "aww"
 
-    def __call__(self, msg):
+    def __call__(self, _):
         return self.query_image("/r/aww")
 
 
 class RandomImage(ImageCommand):
     command = "random"
 
-    def __call__(self, msg):
+    def __call__(self, _):
         query = random.choice(open("/usr/share/dict/words").readlines())
         return self.query_image(query)
 
@@ -188,7 +188,7 @@ class GifBinCommand:
 
     img_re = re.compile('<img src="([^"]+?)">')
 
-    def __call__(self, msg):
+    def __call__(self, _):
         rss = requests.get("http://www.gifbin.com/feed/")
         images = self.img_re.findall(rss.text)
         return random.choice(images).replace("/tn_", "/")
@@ -201,7 +201,7 @@ class JjDotAmCommand:
         '<img border="0" src="((http://forgifs.com/gallery/./)([\\d]+?-[\\d])/([^"]+?))"'
     )
 
-    def __call__(self, msg):
+    def __call__(self, _):
         rss = requests.get("http://forgifs.com/gallery/srss/7")
         images = self.img_re.findall(rss.text)
         url, base_url, num, filename = random.choice(images)
@@ -221,7 +221,7 @@ class ForGifsCommand:
 
     img_re = re.compile('&lt;img src="([^"]+?)"/&gt;')
 
-    def __call__(self, msg):
+    def __call__(self, _):
         rss = requests.get("http://4gifs.tumblr.com/rss")
         images = self.img_re.findall(rss.text)
         return random.choice(images)
