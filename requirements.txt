@@ -1,11 +1,10 @@
-arrow
 apscheduler
-cssselect
+arrow
 coloredlogs
-python-dotenv
+lark
 matplotlib
 pandas
+prometheus-pandas
+python-dotenv
 requests
 slack_sdk
-prometheus-pandas
-lark
