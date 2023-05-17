@@ -16,19 +16,17 @@ keypair_lang = Lark(
             value: string
                  | int
                  | float
-                 | symbol
                  | bool
+                 | symbol
 
             string: ESCAPED_STRING
             int: INT
             float: FLOAT
 
-
-            bool: "true"
-                | "false"
-                | "True"
-                | "False"
-
+            bool: "true"    -> true
+                | "True"    -> true
+                | "false"   -> false
+                | "False"   -> false
 
             %import common (ESCAPED_STRING, CNAME, INT, FLOAT, WS)
 
@@ -46,7 +44,8 @@ class KeypairCommandTransformer(Transformer):
         return f"<@{m.value}>"
 
     def symbol(self, sym):
-        return sym
+        (sym,) = sym
+        return sym.value
 
     def command(self, cmd):
         (cmd,) = cmd
@@ -56,12 +55,11 @@ class KeypairCommandTransformer(Transformer):
         (s,) = s
         return s[1:-1]
 
-    def bool(self, b):
-        lb = b.lower()
-        if lb == "true":
-            return True
-        elif lb == "false":
-            return False
+    def true(self, _):
+        return True
+
+    def false(self, _):
+        return False
 
     def int(self, i):
         (i,) = i

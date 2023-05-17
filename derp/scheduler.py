@@ -29,7 +29,7 @@ def register_queue_job(bot):
             year="*",
             month="*",
             day="*",
-            hour="*",
+            hour="7,8,9,10,11,12",
             minute="0",
             timezone=pytz.timezone("US/Eastern"),
         ),

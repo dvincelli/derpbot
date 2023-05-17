@@ -9,7 +9,7 @@ class CommandRunner:
         self._find_command = command_finder
         self.bot = bot
 
-    def _respond(self, response):
+    def _respond(self, response, thread_ts):
         logger.debug("response is %r", response)
 
         # legacy commands return a tuple
@@ -23,9 +23,11 @@ class CommandRunner:
         if callable(text):
             if text.args.get("channel") is None:
                 text.args["channel"] = channel
+            if text.args.get("thread_ts") is None:
+                text.args["thread_ts"] = thread_ts
             return text(self.bot)
 
-        self.bot.say(channel=channel, text=text)
+        self.bot.say(channel=channel, text=text, thread_ts=thread_ts)
 
     def _run(self, msg, command):
         if getattr(command, "wants_parse", False):
@@ -55,11 +57,12 @@ class CommandRunner:
             message["body"] = slack_message["text"]
             message["to"] = slack_message["user"]
             message["from"] = slack_message["channel"]
+            thread_ts = slack_message.get("ts")
 
             command = self._find_command(message)
             response = self._run(message, command)
 
-            self._respond(response)
+            self._respond(response, thread_ts)
 
         except KeyError as e:
             logger.exception("%s while handling message", e)
