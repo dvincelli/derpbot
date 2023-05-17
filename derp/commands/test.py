@@ -1,17 +1,8 @@
-import random
-import time
-import re
-import logging
-
-
-logger = logging.getLogger(__name__)
-
-
 class EchoCommand:
     command = "echo"
 
     def parse(self, body):
-        return " ".join(body.split(" ")[1:])
+        return " ".join(body.split(" ")[2:])
 
     def __call__(self, msg):
         return self.parse(msg["body"])
@@ -20,5 +11,5 @@ class EchoCommand:
 class PingCommand:
     command = "ping"
 
-    def __call__(self, msg):
+    def __call__(self, _):
         return "pong"
