@@ -12,9 +12,11 @@ from datetime import datetime, timedelta
 import logging
 import pytz
 from derp.command.response import ShareFileResponse, ShareFileArgs
-
+import threading
 
 logger = logging.getLogger(__name__)
+
+plt_lock = threading.Lock()
 
 
 def prometheus_pandas(access_token, url):
@@ -134,17 +136,20 @@ class VizCommand(PromCommand):
         kind = kwargs.pop("kind", "line")
         df = super().query_range(*args, **kwargs)
 
-        ax = plt.subplot()
-        ax.xaxis.set_major_formatter(
-            matplotlib.dates.DateFormatter("%m-%d %H:%M", tz=tzlocal())
-        )
-        ax = df.plot(kind=kind, ax=ax)
+        with plt_lock:
+            ax = plt.subplot()
+            ax.xaxis.set_major_formatter(
+                matplotlib.dates.DateFormatter("%m-%d %H:%M", tz=tzlocal())
+            )
+            ax = df.plot(kind=kind, ax=ax)
 
-        buf = io.BytesIO()
+            buf = io.BytesIO()
 
-        plt.savefig(buf, format="png")
-        buf.seek(0)
-        return buf
+            plt.savefig(buf, format="png")
+            plt.close()
+
+            buf.seek(0)
+            return buf
 
     def __call__(self, command):
         args = command[2]

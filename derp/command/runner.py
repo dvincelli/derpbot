@@ -9,10 +9,12 @@ class CommandRunner:
         self.find_command = command_finder
         self.bot = bot
 
+    def list_commands(self):
+        return self.find_command.list_commands()
+
     def _respond(self, response, thread_ts):
         logger.debug("response is %r", response)
 
-        # legacy commands return a tuple
         try:
             channel, text = response
         except TypeError as e:
@@ -27,6 +29,7 @@ class CommandRunner:
                 text.args["thread_ts"] = thread_ts
             return text(self.bot)
 
+        # Legacy: a tuple of (str, str)
         self.bot.say(channel=channel, text=text, thread_ts=thread_ts)
 
     def _run(self, msg, command):

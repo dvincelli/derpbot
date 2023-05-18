@@ -33,6 +33,9 @@ class SlackBot:
     def handle_request(self, req):
         self.handler(self.socket_client, req)
 
+    def list_commands(self):
+        return self.handler.list_commands()
+
     def run(self):
         self.web_client.api_test()
         self.socket_client.connect()

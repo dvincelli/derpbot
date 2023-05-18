@@ -18,7 +18,11 @@ class CommandFinder:
         logger.debug("Searching for command %s", command)
         if self.find_command(command):
             logger.debug("Found command %s", command)
+
             return command
+
+    def list_commands(self):
+        return sorted(self.commands.keys())
 
     def find_command(self, cmdname):
         logger.debug("Looking for %r in %r", cmdname, self.commands)
