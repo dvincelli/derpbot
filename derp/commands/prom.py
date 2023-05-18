@@ -9,6 +9,7 @@ from prometheus_pandas.query import Prometheus as PrometheusPandas
 from datetime import datetime, timedelta
 import logging
 from derp.command.response import ShareFileResponse, ShareFileArgs
+from derp.util import get_local_timezone
 
 
 logger = logging.getLogger(__name__)
@@ -24,12 +25,6 @@ def prometheus_pandas(access_token, url):
     return PrometheusPandas(url, http)
 
 
-def prometheus_pandas_from_env():
-    return prometheus_pandas(
-        os.getenv("PROMETHEUS_ACCESS_TOKEN"), os.getenv("PROMETHEUS_URL")
-    )
-
-
 class PromCommand:
     command = "prom"
     wants_parse = True
@@ -39,7 +34,8 @@ class PromCommand:
         self._access_token_expires_at = 0
 
     def access_token(self):
-        # Should do this via dependency injection / provider...
+        # Should do this via dependency injection / provider. At the very least,
+        # the oauth end-point and payload needs to be configurable.
 
         if self._access_token and time.time() < self._access_token_expires_at:
             return self._access_token
@@ -100,6 +96,7 @@ class PromCommand:
             time=time,
             timeout=timedelta(seconds=timeout) if timeout is not None else None,
         )
+        df.localize(tz=get_local_timezone())
         logger.debug("Got df %r", df)
         return df
 
@@ -120,6 +117,7 @@ class PromCommand:
             step=step,
             timeout=timedelta(seconds=timeout) if timeout is not None else None,
         )
+        df.localize(tz=get_local_timezone())
         logger.debug("Got df %r", df)
         return df
 
@@ -140,7 +138,6 @@ class VizCommand(PromCommand):
         return buf
 
     def __call__(self, command):
-        cmd = command[1]
         args = command[2]
 
         if "query" in args:
