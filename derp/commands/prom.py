@@ -1,15 +1,17 @@
 import arrow
+from dateutil.tz import tzlocal
 import io
 import requests
 import os
 import time
 from typing import Optional, Union
 import matplotlib.pyplot as plt
+import matplotlib.dates
 from prometheus_pandas.query import Prometheus as PrometheusPandas
 from datetime import datetime, timedelta
 import logging
+import pytz
 from derp.command.response import ShareFileResponse, ShareFileArgs
-from derp.util import get_local_timezone
 
 
 logger = logging.getLogger(__name__)
@@ -96,7 +98,6 @@ class PromCommand:
             time=time,
             timeout=timedelta(seconds=timeout) if timeout is not None else None,
         )
-        df.localize(tz=get_local_timezone())
         logger.debug("Got df %r", df)
         return df
 
@@ -117,7 +118,8 @@ class PromCommand:
             step=step,
             timeout=timedelta(seconds=timeout) if timeout is not None else None,
         )
-        df.localize(tz=get_local_timezone())
+        df = df.tz_localize(tz=pytz.UTC)
+        df = df.tz_convert(tz=tzlocal())
         logger.debug("Got df %r", df)
         return df
 
@@ -131,8 +133,13 @@ class VizCommand(PromCommand):
     def query_range(self, *args, **kwargs):
         kind = kwargs.pop("kind", "line")
         df = super().query_range(*args, **kwargs)
-        df.plot(kind=kind)
+
+        ax = plt.subplot()
+        ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%m-%d %H:%M', tz=tzlocal()))
+        ax = df.plot(kind=kind, ax=ax)
+
         buf = io.BytesIO()
+
         plt.savefig(buf, format="png")
         buf.seek(0)
         return buf
