@@ -14,7 +14,9 @@ logger = logging.getLogger(__name__)
 scheduler = BackgroundScheduler()
 
 
-def initialize_scheduler(bot, schedule_path=os.getenv("DERP_SCHEDULE_PATH", "schedule.toml")):
+def initialize_scheduler(
+    bot, schedule_path=os.getenv("DERP_SCHEDULE_PATH", "schedule.toml")
+):
     logger.debug("Initializing scheduled jobs from %r", schedule_path)
 
     try:

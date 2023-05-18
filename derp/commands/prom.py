@@ -135,7 +135,9 @@ class VizCommand(PromCommand):
         df = super().query_range(*args, **kwargs)
 
         ax = plt.subplot()
-        ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%m-%d %H:%M', tz=tzlocal()))
+        ax.xaxis.set_major_formatter(
+            matplotlib.dates.DateFormatter("%m-%d %H:%M", tz=tzlocal())
+        )
         ax = df.plot(kind=kind, ax=ax)
 
         buf = io.BytesIO()

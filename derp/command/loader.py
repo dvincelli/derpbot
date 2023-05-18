@@ -17,7 +17,7 @@ class CommandLoader:
         self.load_commands()
 
     def load_commands(self):
-        for cmd in importlib.resources.files('derp.commands').iterdir():
+        for cmd in importlib.resources.files("derp.commands").iterdir():
             with importlib.resources.as_file(cmd) as file:
                 if not file.suffix != "py":
                     continue
