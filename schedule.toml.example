@@ -1,0 +1,7 @@
+[jobs]
+
+[jobs.test]
+channel = "#general"
+command = "echo test"
+trigger = "cron"
+trigger_args = { year = "*", month = "*", day = "*", hour = "*", minute="*", timezone="US/Eastern" }

@@ -14,10 +14,15 @@ logger = logging.getLogger(__name__)
 scheduler = BackgroundScheduler()
 
 
-def initialize(bot, schedule_path=os.getenv("DERP_SCHEDULE_PATH", "schedule.toml")):
+def initialize_scheduler(bot, schedule_path=os.getenv("DERP_SCHEDULE_PATH", "schedule.toml")):
     logger.debug("Initializing scheduled jobs from %r", schedule_path)
-    config = load_config(schedule_path)
-    register_jobs(bot, config)
+
+    try:
+        config = load_config(schedule_path)
+        register_jobs(bot, config)
+    except FileNotFoundError:
+        logger.warn("Schedule file not found. No jobs registered with the scheduler.")
+
     scheduler.start()
 
 

@@ -4,7 +4,6 @@ from slack_sdk.socket_mode.response import SocketModeResponse
 from slack_sdk.socket_mode.request import SocketModeRequest
 from threading import Event
 import logging
-import requests
 import os
 
 
