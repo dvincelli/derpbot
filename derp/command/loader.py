@@ -1,8 +1,10 @@
 import importlib
+import importlib.resources
 import os
 import sys
 
 import logging
+
 
 logger = logging.getLogger("derp.command.loader")
 
@@ -15,19 +17,16 @@ class CommandLoader:
         self.load_commands()
 
     def load_commands(self):
-        cmdpath = os.path.join(
-            os.path.abspath(os.path.dirname(sys.modules["__main__"].__file__)),
-            "commands",
-        )
-        for cmd in os.listdir(cmdpath):
-            if not cmd.endswith(".py"):
-                continue
-            modname = os.path.basename(cmd)[:-3]  # remove .py
-            module = importlib.import_module(".".join(["derp.commands", modname]))
-            logger.debug("Imported module: %r", module)
-            for klassname in [c for c in dir(module) if not c.startswith("__")]:
-                self.add_command(module, klassname)
-                self.add_pattern(module, klassname)
+        for cmd in importlib.resources.files('derp.commands').iterdir():
+            with importlib.resources.as_file(cmd) as file:
+                if not file.suffix != "py":
+                    continue
+                modname = file.stem
+                module = importlib.import_module(".".join(["derp.commands", modname]))
+                logger.debug("Imported module: %r", module)
+                for klassname in [c for c in dir(module) if not c.startswith("__")]:
+                    self.add_command(module, klassname)
+                    self.add_pattern(module, klassname)
         logger.debug("Loaded commands: %r", self.commands)
         logger.debug("Loaded patterns: %r", self.patterns)
 

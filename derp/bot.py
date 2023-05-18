@@ -10,7 +10,7 @@ from derp.backends.slack import SlackBot
 import derp.command.factory
 
 
-if __name__ == "__main__":
+def main():
     dotenv.load_dotenv()
 
     # Setup the command line arguments.
@@ -68,3 +68,7 @@ if __name__ == "__main__":
     derp.command.factory.initialize(bot)
 
     bot.run()
+
+
+if __name__ == "__main__":
+    main()
