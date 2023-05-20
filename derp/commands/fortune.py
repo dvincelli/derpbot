@@ -74,3 +74,19 @@ class SeinfeldCommand(FortuneCommand):
 
 class BmcCommand(FortuneCommand):
     command = "bmc"
+
+
+class BofhCommand(FortuneCommand):
+    command = "bofh-excuses"
+
+
+class UbuntuServerTipsCommand(FortuneCommand):
+    command = "ubuntu-server-tips"
+
+
+class ComputerCommand(FortuneCommand):
+    command = "computer"
+
+
+class VimTipsCommand(FortuneCommand):
+    command = "vim-tips"
