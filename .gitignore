@@ -37,4 +37,9 @@ nosetests.xml
 .env
 .venv
 
+.git
+.pytest-cache
+
 *.swp
+
+schedule.toml
