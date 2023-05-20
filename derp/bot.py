@@ -10,9 +10,6 @@ from derp.backends.slack import SlackBot
 import derp.command.factory
 
 
-__version__ = '0.2.1'
-
-
 def main():
     dotenv.load_dotenv()
 
