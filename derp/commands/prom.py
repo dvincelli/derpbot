@@ -198,6 +198,38 @@ class QueueLengths(VizCommand):
         return response
 
 
+class TasksStatus(VizCommand):
+    command = "tasks"
+
+    def __call__(self, command):
+        end = arrow.now()
+        start = end.shift(hours=-1)
+
+        args = command[2]
+
+        status = args.get("status", "succeeded")  # succeeded, failed, received
+        tasks = args.get("tasks", ".+")  # all tasks, otherwise pipe-seperated
+
+        # succeeded, failed, received
+        metric = f"celery_task_{status}_total"
+
+        response = super().__call__(
+            [
+                command[0],
+                "tasks",
+                dict(
+                    query_range=f'sum by (name) (round(increase({metric}{{kubernetes_service_name=~"celery-exporter",kubernetes_namespace="default",name=~"{tasks}"}}[1m])))',
+                    start=start.isoformat(),
+                    end=end.isoformat(),
+                    step="1m",
+                ),
+            ]
+        )
+        now = end.format("YYYY-MM-DD HH:mm")
+        response.args["title"] = f"{status} {tasks} as of {now}"
+        return response
+
+
 class K8sCommand(PromCommand):
     command = "k8s"
     wants_parse = True
