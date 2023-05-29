@@ -11,10 +11,13 @@ from prometheus_pandas.query import Prometheus as PrometheusPandas
 from datetime import datetime, timedelta
 import logging
 import pytz
-from derp.command.response import ShareFileResponse, ShareFileArgs
+from derp.command.response import SayArgs, SayResponse, ShareFileResponse, ShareFileArgs
 import threading
+import pandas as pd
+
 
 logger = logging.getLogger(__name__)
+
 
 plt_lock = threading.Lock()
 
@@ -126,6 +129,23 @@ class PromCommand:
         return df
 
 
+def save_plot(df: pd.DataFrame, kind: str = 'line'):
+    with plt_lock:
+        ax = plt.subplot()
+        ax.xaxis.set_major_formatter(
+            matplotlib.dates.DateFormatter("%m-%d %H:%M", tz=tzlocal())
+        )
+        ax = df.plot(kind=kind, ax=ax)
+
+        buf = io.BytesIO()
+
+        plt.savefig(buf, format="png")
+        plt.close()
+
+        buf.seek(0)
+        return buf
+
+
 class VizCommand(PromCommand):
     command = "viz"
 
@@ -135,21 +155,8 @@ class VizCommand(PromCommand):
     def query_range(self, *args, **kwargs):
         kind = kwargs.pop("kind", "line")
         df = super().query_range(*args, **kwargs)
+        return save_plot(df, kind=kind)
 
-        with plt_lock:
-            ax = plt.subplot()
-            ax.xaxis.set_major_formatter(
-                matplotlib.dates.DateFormatter("%m-%d %H:%M", tz=tzlocal())
-            )
-            ax = df.plot(kind=kind, ax=ax)
-
-            buf = io.BytesIO()
-
-            plt.savefig(buf, format="png")
-            plt.close()
-
-            buf.seek(0)
-            return buf
 
     def __call__(self, command):
         args = command[2]
@@ -198,7 +205,7 @@ class QueueLengths(VizCommand):
         return response
 
 
-class TasksStatus(VizCommand):
+class TasksCommand(PromCommand):
     command = "tasks"
 
     def __call__(self, command):
@@ -225,8 +232,59 @@ class TasksStatus(VizCommand):
                 ),
             ]
         )
+        return response
+
+
+class TaskCommand(PromCommand):
+    command = "task"
+
+    def __call__(self, command):
+        end = arrow.now()
+        start = end.shift(hours=-1)
+
+        args = command[2]
+
+        task = args.get("task", None)
+        if not task:
+            return SayResponse(
+                SayArgs(text='Error: "task" argument missing')
+            )
+
+        # TODO: allow user to override the date
+        # start = args.get("start", start)
+        # end = args.get("end", end)
+
+        step = args.get("step", "1m")
+
+        # succeeded, failed, received
+
+        dfs = []
+        for status in ["succeeded", "failed", "received"]:
+            metric = f"celery_task_{status}_total"
+            query = f'sum by (name) (round(increase({metric}{{kubernetes_service_name=~"celery-exporter",kubernetes_namespace="default",name="{task}"}}[{step}])))'
+            logger.debug("PromQL Query is %r", query)
+            df = self.query_range(query_range=query, start=start.isoformat(), end=end.isoformat(), step=step)
+            df.columns = [f'{status}']
+            dfs.append(df)
+
+        merged_df = dfs[0].join(dfs[1]).join(dfs[2])
+
+        content = save_plot(merged_df)
+
         now = end.format("YYYY-MM-DD HH:mm")
-        response.args["title"] = f"{status} {tasks} as of {now}"
+        title = "{task} from {start} to {end} in {step} steps".format(task=task, start=start, end=end, step=step)
+        filename = "plot.png"
+        response = ShareFileResponse(
+                args=ShareFileArgs(
+                    title=title,
+                    filename=filename,
+                    content=content,
+                    text="{file_url}",
+                    channel=None,
+                    thread_ts=None,
+                )
+            )
+        response.args["title"] = f"{task} status as of {now}"
         return response
 
 
