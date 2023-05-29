@@ -59,7 +59,7 @@ def register_jobs(bot, config):
         def run_job():
             logger.debug("Running scheduled job %r", job)
             req = SchedulerRequest(
-                f"<@mention> {job_config['command']}", "@scheduler", "#general"
+                f"<@mention> {job_config['command']}", "@scheduler", job_config.get('channel', "#general")
             )
             bot.handle_request(req)
 
