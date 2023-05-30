@@ -216,6 +216,7 @@ class TasksCommand(PromCommand):
 
         status = args.get("status", "succeeded")  # succeeded, failed, received
         tasks = args.get("tasks", ".+")  # all tasks, otherwise pipe-seperated
+        step = args.get("step", "10m")
 
         # succeeded, failed, received
         metric = f"celery_task_{status}_total"
@@ -225,10 +226,10 @@ class TasksCommand(PromCommand):
                 command[0],
                 "tasks",
                 dict(
-                    query_range=f'sum by (name) (round(increase({metric}{{kubernetes_service_name=~"celery-exporter",kubernetes_namespace="default",name=~"{tasks}"}}[1m])))',
+                    query_range=f'sum by (name) (round(increase({metric}{{kubernetes_service_name=~"celery-exporter",kubernetes_namespace="default",name=~"{tasks}"}}[{step}])))',
                     start=start.isoformat(),
                     end=end.isoformat(),
-                    step="1m",
+                    step=step,
                 ),
             ]
         )
@@ -250,16 +251,16 @@ class TaskCommand(PromCommand):
                 SayArgs(text='Error: "task" argument missing')
             )
 
+        step = args.get("step", "10m")
+
         # TODO: allow user to override the date
         # start = args.get("start", start)
         # end = args.get("end", end)
 
-        step = args.get("step", "1m")
-
         # succeeded, failed, received
 
         dfs = []
-        for status in ["succeeded", "failed", "received"]:
+        for status in ["received", "succeeded", "failed"]:
             metric = f"celery_task_{status}_total"
             query = f'sum by (name) (round(increase({metric}{{kubernetes_service_name=~"celery-exporter",kubernetes_namespace="default",name="{task}"}}[{step}])))'
             logger.debug("PromQL Query is %r", query)
