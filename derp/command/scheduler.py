@@ -53,15 +53,15 @@ class SchedulerRequest:
 
 
 def register_jobs(bot, config):
+    def run_job(job, job_config):
+        logger.debug("Running scheduled job %r", job)
+        req = SchedulerRequest(
+            f"<@mention> {job_config['command']}", "@scheduler", job_config.get('channel', "#general")
+        )
+        bot.handle_request(req)
+
     for job, job_config in config["jobs"].items():
         logger.debug("Registering scheduled job %r with config %r", job, job_config)
-
-        def run_job():
-            logger.debug("Running scheduled job %r", job)
-            req = SchedulerRequest(
-                f"<@mention> {job_config['command']}", "@scheduler", job_config.get('channel', "#general")
-            )
-            bot.handle_request(req)
 
         triggers = {
             "cron": CronTrigger,
@@ -73,4 +73,4 @@ def register_jobs(bot, config):
         kwargs = job_config["trigger_args"]
         trigger = trigger_klass(**kwargs)
 
-        scheduler.add_job(run_job, trigger=trigger)
+        scheduler.add_job(func=run_job, args=[job, job_config], trigger=trigger, id=job, name=job)
