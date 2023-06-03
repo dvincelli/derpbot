@@ -187,7 +187,7 @@ class QueueLengths(VizCommand):
 
     def __call__(self, command):
         end = arrow.now()
-        start = end.shift(hours=-1)
+        start = end.shift(hours=-4)
         response = super().__call__(
             [
                 command[0],
@@ -210,7 +210,7 @@ class TasksCommand(PromCommand):
 
     def __call__(self, command):
         end = arrow.now()
-        start = end.shift(hours=-1)
+        start = end.shift(hours=-4)
 
         args = command[2]
 
@@ -241,7 +241,7 @@ class TaskCommand(PromCommand):
 
     def __call__(self, command):
         end = arrow.now()
-        start = end.shift(hours=-1)
+        start = end.shift(hours=-4)
 
         args = command[2]
 
