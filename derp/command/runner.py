@@ -63,7 +63,11 @@ class CommandRunner:
             thread_ts = slack_message.get("ts")
 
             command = self.find_command(message)
-            response = self._run(message, command)
+            try:
+                response = self._run(message, command)
+            except Exception as e:
+                logger.exception(e)
+                response = f'Error: {e}'
 
             self._respond(response, thread_ts)
 
