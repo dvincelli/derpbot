@@ -187,7 +187,7 @@ class QueueLengths(VizCommand):
 
     def __call__(self, command):
         end = arrow.now()
-        start = end.shift(hours=-4)
+        start = end.shift(hours=-24)
         response = super().__call__(
             [
                 command[0],
