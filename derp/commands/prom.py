@@ -210,7 +210,7 @@ class TasksCommand(PromCommand):
 
     def __call__(self, command):
         end = arrow.now()
-        start = end.shift(hours=-4)
+        start = end.shift(hours=-24)
 
         args = command[2]
 
@@ -241,7 +241,7 @@ class TaskCommand(PromCommand):
 
     def __call__(self, command):
         end = arrow.now()
-        start = end.shift(hours=-4)
+        start = end.shift(hours=-24)
 
         args = command[2]
 
